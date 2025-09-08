@@ -1,16 +1,19 @@
-* {
+/* Landing page specific styles */
+.landing-page * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
 }
 
-body {
+.landing-page {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   background: #1a1a2e;
   color: white;
+  width: 100vw;
+  height: 100vh;
 }
 
-.container {
+.landing-container {
   width: 100vw;
   height: 100vh;
   display: flex;
@@ -18,34 +21,34 @@ body {
   padding: 0 8%;
 }
 
-.content {
+.landing-content {
   flex: 1;
 }
 
-.logo {
+.landing-logo {
   width: 100%;
   max-width: 600px;
   height: auto;
   margin-bottom: 3rem;
 }
 
-.greeting {
+.landing-greeting {
   margin-top: 2rem;
 }
 
-.hello {
+.landing-hello {
   font-size: 2.5rem;
   color: #5FF281;
   font-weight: 700;
   margin-bottom: 1rem;
 }
 
-.subtitle {
+.landing-subtitle {
   font-size: 1.5rem;
   color: #888;
 }
 
-.graphic {
+.landing-graphic {
   width: 500px;
   height: auto;
 }
