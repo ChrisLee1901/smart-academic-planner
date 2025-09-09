@@ -1,5 +1,4 @@
-import { useState } from 'react';
-import {
+import { 
   Container,
   Title,
   Text,
@@ -9,7 +8,6 @@ import {
   Group,
   Badge,
   Stack,
-  Modal,
   SimpleGrid,
   Card,
   ThemeIcon,
@@ -23,17 +21,13 @@ import {
   IconCheck,
   IconBrain,
 } from '@tabler/icons-react';
-import { EventCard } from '../components/EventCard';
-import { KanbanColumn } from '../components/KanbanColumn';
 import { StudyScheduleGenerator } from '../components/StudyScheduleGenerator';
 import { PomodoroTimer } from '../components/PomodoroTimer';
 import { GoalTracker } from '../components/GoalTracker';
 import { HabitTracker } from '../components/HabitTracker';
 import { ProductivityAnalytics } from '../components/ProductivityAnalytics';
 import { AIStudyAssistant } from '../components/AIStudyAssistant';
-import { EventForm } from '../components/EventForm';
 import { useEventStore } from '../store/eventStore';
-import type { AcademicEvent } from '../types';
 import { getDaysUntil } from '../utils/dateUtils';
 
 interface DashboardProps {
@@ -41,9 +35,7 @@ interface DashboardProps {
 }
 
 export function Dashboard({ onTabChange }: DashboardProps) {
-  const { events, addEvent, updateEvent, deleteEvent } = useEventStore();
-  const [isFormOpen, setIsFormOpen] = useState(false);
-  const [editingEvent, setEditingEvent] = useState<AcademicEvent | undefined>();
+  const { events } = useEventStore();
 
   const handleGoToAnalytics = () => {
     onTabChange('analytics');
@@ -51,44 +43,6 @@ export function Dashboard({ onTabChange }: DashboardProps) {
 
   const handleGoToCalendar = () => {
     onTabChange('calendar');
-  };
-
-  const handleEditEvent = (event: AcademicEvent) => {
-    setEditingEvent(event);
-    setIsFormOpen(true);
-  };
-
-  const handleFormSubmit = async (eventData: Omit<AcademicEvent, 'id'>) => {
-    try {
-      if (editingEvent) {
-        await updateEvent(editingEvent.id, { ...eventData, id: editingEvent.id });
-      } else {
-        await addEvent({ ...eventData, id: Date.now().toString() });
-      }
-      setIsFormOpen(false);
-      setEditingEvent(undefined);
-    } catch (error) {
-      console.error('Failed to save event:', error);
-    }
-  };
-
-  const handleStatusChange = async (eventId: string, status: AcademicEvent['status']) => {
-    try {
-      const event = events.find(e => e.id === eventId);
-      if (event) {
-        await updateEvent(eventId, { ...event, status });
-      }
-    } catch (error) {
-      console.error('Failed to update event status:', error);
-    }
-  };
-
-  const handleDeleteEvent = async (eventId: string) => {
-    try {
-      await deleteEvent(eventId);
-    } catch (error) {
-      console.error('Failed to delete event:', error);
-    }
   };
 
   // Statistics
@@ -135,7 +89,7 @@ export function Dashboard({ onTabChange }: DashboardProps) {
                 <IconCalendarEvent size={16} />
               </ThemeIcon>
             </Group>
-            <Text fw={700} size="xl">{totalEvents}</Text>
+            <Text size="xl" fw={700} c="blue">{totalEvents}</Text>
           </Card>
 
           <Card withBorder padding="lg" radius="md">
@@ -145,7 +99,7 @@ export function Dashboard({ onTabChange }: DashboardProps) {
                 <IconCheck size={16} />
               </ThemeIcon>
             </Group>
-            <Text fw={700} size="xl">{completedEvents}</Text>
+            <Text size="xl" fw={700} c="green">{completedEvents}</Text>
           </Card>
 
           <Card withBorder padding="lg" radius="md">
@@ -155,7 +109,7 @@ export function Dashboard({ onTabChange }: DashboardProps) {
                 <IconClock size={16} />
               </ThemeIcon>
             </Group>
-            <Text fw={700} size="xl">{upcomingEvents}</Text>
+            <Text size="xl" fw={700} c="yellow">{upcomingEvents}</Text>
           </Card>
 
           <Card withBorder padding="lg" radius="md">
@@ -165,118 +119,78 @@ export function Dashboard({ onTabChange }: DashboardProps) {
                 <IconAlertTriangle size={16} />
               </ThemeIcon>
             </Group>
-            <Text fw={700} size="xl" c={overdueEvents > 0 ? 'red' : undefined}>
-              {overdueEvents}
-            </Text>
+            <Text size="xl" fw={700} c="red">{overdueEvents}</Text>
           </Card>
         </SimpleGrid>
 
-        {/* Completion Rate */}
-        <Paper withBorder p="md" radius="md">
-          <Group justify="space-between" mb="xs">
-            <Text fw={500}>Tỷ lệ hoàn thành</Text>
-            <Badge color={completionRate >= 80 ? 'green' : completionRate >= 60 ? 'yellow' : 'red'}>
-              {completionRate}%
-            </Badge>
-          </Group>
+        {/* Progress Overview */}
+        <Paper withBorder p="lg" radius="md">
+          <Title order={3} mb="sm">Tỷ lệ hoàn thành</Title>
+          <Badge size="lg" color={completionRate >= 80 ? 'green' : completionRate >= 60 ? 'yellow' : 'red'} mb="sm">
+            {completionRate}%
+          </Badge>
           <Progress value={completionRate} color={completionRate >= 80 ? 'green' : completionRate >= 60 ? 'yellow' : 'red'} />
         </Paper>
 
-        {/* Kanban Board */}
-        <Stack gap="md">
-          <Title order={2}>📋 Bảng quản lý nhiệm vụ</Title>
+        {/* Study Tools Grid */}
+        <SimpleGrid cols={{ base: 1, md: 2 }} spacing="lg">
+          {/* Study Schedule Generator */}
+          <StudyScheduleGenerator />
           
-          <Grid gutter="md">
-            <Grid.Col span={{ base: 12, sm: 4 }}>
-              <KanbanColumn
-                title="📝 Cần làm"
-                status="todo"
-                events={events.filter(e => e.status === 'todo')}
-                onEdit={handleEditEvent}
-                onDelete={handleDeleteEvent}
-                onStatusChange={handleStatusChange}
-                color="blue"
-              />
-            </Grid.Col>
-            
-            <Grid.Col span={{ base: 12, sm: 4 }}>
-              <KanbanColumn
-                title="⚡ Đang làm"
-                status="in-progress"
-                events={events.filter(e => e.status === 'in-progress')}
-                onEdit={handleEditEvent}
-                onDelete={handleDeleteEvent}
-                onStatusChange={handleStatusChange}
-                color="yellow"
-              />
-            </Grid.Col>
-            
-            <Grid.Col span={{ base: 12, sm: 4 }}>
-              <KanbanColumn
-                title="✅ Hoàn thành"
-                status="done"
-                events={events.filter(e => e.status === 'done')}
-                onEdit={handleEditEvent}
-                onDelete={handleDeleteEvent}
-                onStatusChange={handleStatusChange}
-                color="green"
-              />
-            </Grid.Col>
-          </Grid>
-        </Stack>
+          {/* Pomodoro Timer */}
+          <PomodoroTimer />
+        </SimpleGrid>
 
-        {/* Study Tools Section */}
+        {/* Upcoming This Week */}
         <Grid>
           <Grid.Col span={{ base: 12, md: 8 }}>
-            <StudyScheduleGenerator />
-          </Grid.Col>
-          
-          <Grid.Col span={{ base: 12, md: 4 }}>
-            <PomodoroTimer />
-          </Grid.Col>
-        </Grid>
-
-        <Grid>
-          {/* Upcoming This Week */}
-          <Grid.Col span={{ base: 12, md: 8 }}>
-            <Paper withBorder p="md" radius="md" h="100%">
+            <Paper withBorder p="md" radius="md">
               <Group mb="md">
                 <ThemeIcon variant="light" color="blue">
-                  <IconClock size={20} />
+                  <IconCalendarEvent size={20} />
                 </ThemeIcon>
-                <Title order={3}>Sự kiện sắp tới (7 ngày)</Title>
+                <Title order={4}>Sự kiện tuần này</Title>
               </Group>
               
-              <Stack gap="md">
+              <Stack gap="xs">
                 {upcomingThisWeek.length > 0 ? (
-                  upcomingThisWeek.map(event => (
-                    <EventCard
-                      key={event.id}
-                      event={event}
-                      onEdit={handleEditEvent}
-                      onDelete={handleDeleteEvent}
-                      onStatusChange={handleStatusChange}
-                    />
-                  ))
+                  upcomingThisWeek.map(event => {
+                    const daysUntil = getDaysUntil(event.startTime);
+                    return (
+                      <Paper key={event.id} p="xs" withBorder radius="sm">
+                        <Group justify="space-between">
+                          <Box>
+                            <Text size="sm" fw={500} truncate>{event.title}</Text>
+                            <Text size="xs" c="dimmed">{event.course}</Text>
+                          </Box>
+                          <Badge 
+                            color={daysUntil === 0 ? 'red' : daysUntil <= 1 ? 'orange' : 'blue'} 
+                            size="sm"
+                          >
+                            {daysUntil === 0 ? 'Hôm nay' : `${daysUntil} ngày`}
+                          </Badge>
+                        </Group>
+                      </Paper>
+                    );
+                  })
                 ) : (
-                  <Text c="dimmed" ta="center" py="xl">
-                    🎉 Không có sự kiện nào sắp tới trong 7 ngày!
+                  <Text c="dimmed" size="sm" ta="center">
+                    Không có sự kiện nào trong tuần này
                   </Text>
                 )}
               </Stack>
             </Paper>
           </Grid.Col>
 
-          {/* Quick Actions & Recent Completed */}
           <Grid.Col span={{ base: 12, md: 4 }}>
-            <Stack gap="lg">
+            <Stack gap="md">
               {/* Quick Actions */}
               <Paper withBorder p="md" radius="md">
                 <Group mb="md">
-                  <ThemeIcon variant="light" color="violet">
+                  <ThemeIcon variant="light" color="teal">
                     <IconBrain size={20} />
                   </ThemeIcon>
-                  <Title order={4}>Hành động nhanh</Title>
+                  <Title order={4}>Thao tác nhanh</Title>
                 </Group>
                 
                 <Stack gap="xs">
@@ -345,42 +259,6 @@ export function Dashboard({ onTabChange }: DashboardProps) {
           {/* Productivity Analytics */}
           <ProductivityAnalytics />
         </Stack>
-
-        {/* Event Form Modal */}
-        <Modal
-          opened={isFormOpen}
-          onClose={() => {
-            setIsFormOpen(false);
-            setEditingEvent(undefined);
-          }}
-          title={editingEvent ? 'Chỉnh sửa sự kiện' : 'Tạo sự kiện mới'}
-          size="lg"
-          centered={false}
-          padding="lg"
-          styles={{
-            content: {
-              marginLeft: '0px',
-              marginRight: 'auto',
-              transform: 'translateX(-200px)',
-              maxWidth: '500px'
-            },
-            inner: {
-              justifyContent: 'flex-start',
-              alignItems: 'center',
-              paddingLeft: '5px',
-              paddingRight: '50px'
-            }
-          }}
-        >
-          <EventForm
-            event={editingEvent}
-            onSubmit={handleFormSubmit}
-            onCancel={() => {
-              setIsFormOpen(false);
-              setEditingEvent(undefined);
-            }}
-          />
-        </Modal>
       </Stack>
     </Container>
   );

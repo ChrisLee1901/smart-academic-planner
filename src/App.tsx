@@ -3,6 +3,7 @@ import { MantineProvider, createTheme } from '@mantine/core';
 import { ModalsProvider } from '@mantine/modals';
 import { Notifications } from '@mantine/notifications';
 import { useEventStore } from './store/eventStore';
+import { useNotificationSystem } from './hooks/useNotificationSystem';
 import { MainLayout } from './layouts/MainLayout';
 import { Dashboard } from './pages/Dashboard';
 import { CalendarView } from './pages/CalendarView';
@@ -32,6 +33,14 @@ const theme = createTheme({
 function App() {
   const [activeTab, setActiveTab] = useState('dashboard');
   const { initializeStore, isLoading, error } = useEventStore();
+  
+  // Initialize notification system
+  useNotificationSystem({
+    deadlineReminders: true,
+    overdueAlerts: true,
+    dailyDigest: true,
+    motivationalMessages: true
+  });
   
   // Initialize database when app starts
   useEffect(() => {
