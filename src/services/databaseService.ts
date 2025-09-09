@@ -98,7 +98,7 @@ class DatabaseService {
     });
   }
 
-  async updateEvent(id: string, updatedEvent: AcademicEvent): Promise<void> {
+  async updateEvent(_id: string, updatedEvent: AcademicEvent): Promise<void> {
     if (!this.db) {
       await this.init();
     }
