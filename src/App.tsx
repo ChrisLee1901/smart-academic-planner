@@ -1,8 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { MantineProvider, createTheme } from '@mantine/core';
 import { ModalsProvider } from '@mantine/modals';
 import { Notifications } from '@mantine/notifications';
-import { useLocalStorage } from './hooks/useLocalStorage';
+import { useEventStore } from './store/eventStore';
 import { MainLayout } from './layouts/MainLayout';
 import { Dashboard } from './pages/Dashboard';
 import { CalendarView } from './pages/CalendarView';
@@ -31,14 +31,17 @@ const theme = createTheme({
 
 function App() {
   const [activeTab, setActiveTab] = useState('dashboard');
+  const { initializeStore, isLoading, error } = useEventStore();
   
-  // Initialize localStorage persistence
-  useLocalStorage();
+  // Initialize database when app starts
+  useEffect(() => {
+    initializeStore().catch(console.error);
+  }, [initializeStore]);
 
   const renderContent = () => {
     switch (activeTab) {
       case 'dashboard':
-        return <Dashboard />;
+        return <Dashboard onTabChange={setActiveTab} />;
       case 'calendar':
         return <CalendarView />;
       case 'analytics':
@@ -46,7 +49,7 @@ function App() {
       case 'ai':
         return <AIAssistantView />;
       default:
-        return <Dashboard />;
+        return <Dashboard onTabChange={setActiveTab} />;
     }
   };
 
@@ -54,8 +57,32 @@ function App() {
     <MantineProvider theme={theme}>
       <ModalsProvider>
         <Notifications position="top-right" limit={5} />
+        {error && (
+          <div style={{ 
+            background: '#ffe6e6', 
+            color: '#d63384', 
+            padding: '10px', 
+            textAlign: 'center',
+            fontSize: '14px'
+          }}>
+            {error}
+          </div>
+        )}
         <MainLayout activeTab={activeTab} onTabChange={setActiveTab}>
-          {renderContent()}
+          {isLoading ? (
+            <div style={{ 
+              display: 'flex', 
+              justifyContent: 'center', 
+              alignItems: 'center', 
+              height: '200px',
+              fontSize: '16px',
+              color: '#666'
+            }}>
+              Đang tải dữ liệu...
+            </div>
+          ) : (
+            renderContent()
+          )}
         </MainLayout>
       </ModalsProvider>
     </MantineProvider>

@@ -59,24 +59,32 @@ export function CalendarView() {
     setIsFormOpen(true);
   };
 
-  const handleFormSubmit = (eventData: AcademicEvent) => {
-    if (editingEvent && editingEvent.id) {
-      updateEvent(editingEvent.id, eventData);
+  const handleFormSubmit = async (eventData: AcademicEvent) => {
+    try {
+      if (editingEvent && editingEvent.id) {
+        await updateEvent(editingEvent.id, eventData);
+        notifications.show({
+          title: 'Thành công',
+          message: 'Đã cập nhật sự kiện',
+          color: 'blue'
+        });
+      } else {
+        await addEvent(eventData);
+        notifications.show({
+          title: 'Thành công', 
+          message: 'Đã tạo sự kiện mới',
+          color: 'green'
+        });
+      }
+      setIsFormOpen(false);
+      setEditingEvent(undefined);
+    } catch (error) {
       notifications.show({
-        title: 'Thành công',
-        message: 'Đã cập nhật sự kiện',
-        color: 'blue'
-      });
-    } else {
-      addEvent(eventData);
-      notifications.show({
-        title: 'Thành công', 
-        message: 'Đã tạo sự kiện mới',
-        color: 'green'
+        title: 'Lỗi',
+        message: 'Không thể lưu sự kiện. Vui lòng thử lại.',
+        color: 'red'
       });
     }
-    setIsFormOpen(false);
-    setEditingEvent(undefined);
   };
 
   const handleCancel = () => {
@@ -84,14 +92,22 @@ export function CalendarView() {
     setEditingEvent(undefined);
   };
 
-  const handleDelete = (eventId: string) => {
+  const handleDelete = async (eventId: string) => {
     if (confirm('Bạn có chắc chắn muốn xóa sự kiện này?')) {
-      deleteEvent(eventId);
-      notifications.show({
-        title: 'Đã xóa',
-        message: 'Sự kiện đã được xóa thành công',
-        color: 'red'
-      });
+      try {
+        await deleteEvent(eventId);
+        notifications.show({
+          title: 'Đã xóa',
+          message: 'Sự kiện đã được xóa thành công',
+          color: 'red'
+        });
+      } catch (error) {
+        notifications.show({
+          title: 'Lỗi',
+          message: 'Không thể xóa sự kiện. Vui lòng thử lại.',
+          color: 'red'
+        });
+      }
     }
   };
 
@@ -351,11 +367,23 @@ export function CalendarView() {
         opened={isFormOpen}
         onClose={handleCancel}
         title={modalTitle}
-        size="xl"
-        centered
-        zIndex={1000}
+        size="lg"
+        centered={false}
         padding="lg"
-        overlayProps={{ backgroundOpacity: 0.55, blur: 3 }}
+        styles={{
+          content: {
+            marginLeft: '0px',
+            marginRight: 'auto',
+            transform: 'translateX(-1000px)',
+            maxWidth: '500px'
+          },
+          inner: {
+            justifyContent: 'flex-start',
+            alignItems: 'center',
+            paddingLeft: '5px',
+            paddingRight: '50px'
+          }
+        }}
       >
         <EventForm
           event={editingEvent}

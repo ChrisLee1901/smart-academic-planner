@@ -60,10 +60,25 @@ export default function AnalyticsView() {
           }, 0) / eventsWithTime.length 
         : 100;
 
-      // Calculate total study time (estimate)
+      // Calculate total study time based on estimated or actual time
       const totalStudyTime = events.reduce((sum, e) => {
-        const duration = dayjs(e.endTime || e.startTime).diff(dayjs(e.startTime), 'hour');
-        return sum + Math.max(0, duration);
+        let eventTime = 0;
+        
+        // Use actualTime if available, otherwise estimatedTime, otherwise calculate from duration
+        if (e.actualTime && e.actualTime > 0) {
+          eventTime = e.actualTime;
+        } else if (e.estimatedTime && e.estimatedTime > 0) {
+          eventTime = e.estimatedTime;
+        } else if (e.endTime) {
+          // Fallback: calculate from start/end time but cap at reasonable limit
+          const duration = dayjs(e.endTime).diff(dayjs(e.startTime), 'hour', true);
+          eventTime = Math.max(0, Math.min(duration, 8)); // Cap at 8 hours per event
+        } else {
+          // If no end time, assume 1 hour for tasks without duration
+          eventTime = 1;
+        }
+        
+        return sum + eventTime;
       }, 0);
 
       // Top types (instead of categories)

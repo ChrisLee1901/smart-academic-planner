@@ -30,7 +30,11 @@ import { useEventStore } from '../store/eventStore';
 import type { AcademicEvent } from '../types';
 import { getDaysUntil } from '../utils/dateUtils';
 
-export function Dashboard() {
+interface DashboardProps {
+  onTabChange: (tab: string) => void;
+}
+
+export function Dashboard({ onTabChange }: DashboardProps) {
   const { events, addEvent, updateEvent, deleteEvent } = useEventStore();
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingEvent, setEditingEvent] = useState<AcademicEvent | undefined>();
@@ -40,25 +44,50 @@ export function Dashboard() {
     setIsFormOpen(true);
   };
 
+  const handleGoToAnalytics = () => {
+    onTabChange('analytics');
+  };
+
+  const handleGoToCalendar = () => {
+    onTabChange('calendar');
+  };
+
   const handleEditEvent = (event: AcademicEvent) => {
     setEditingEvent(event);
     setIsFormOpen(true);
   };
 
-  const handleFormSubmit = (eventData: AcademicEvent) => {
-    if (editingEvent) {
-      updateEvent(eventData.id, eventData);
-    } else {
-      addEvent(eventData);
+  const handleFormSubmit = async (eventData: AcademicEvent) => {
+    try {
+      if (editingEvent) {
+        await updateEvent(eventData.id, eventData);
+      } else {
+        await addEvent(eventData);
+      }
+      setIsFormOpen(false);
+      setEditingEvent(undefined);
+    } catch (error) {
+      console.error('Failed to save event:', error);
+      // Error will be shown via store's error state
     }
-    setIsFormOpen(false);
-    setEditingEvent(undefined);
   };
 
-  const handleStatusChange = (eventId: string, status: AcademicEvent['status']) => {
-    const event = events.find(e => e.id === eventId);
-    if (event) {
-      updateEvent(eventId, { ...event, status });
+  const handleStatusChange = async (eventId: string, status: AcademicEvent['status']) => {
+    try {
+      const event = events.find(e => e.id === eventId);
+      if (event) {
+        await updateEvent(eventId, { ...event, status });
+      }
+    } catch (error) {
+      console.error('Failed to update event status:', error);
+    }
+  };
+
+  const handleDeleteEvent = async (eventId: string) => {
+    try {
+      await deleteEvent(eventId);
+    } catch (error) {
+      console.error('Failed to delete event:', error);
     }
   };
 
@@ -183,7 +212,7 @@ export function Dashboard() {
                       key={event.id}
                       event={event}
                       onEdit={handleEditEvent}
-                      onDelete={deleteEvent}
+                      onDelete={handleDeleteEvent}
                       onStatusChange={handleStatusChange}
                     />
                   ))
@@ -217,10 +246,20 @@ export function Dashboard() {
                   >
                     Tạo sự kiện mới
                   </Button>
-                  <Button variant="light" fullWidth color="teal">
+                  <Button 
+                    variant="light" 
+                    fullWidth 
+                    color="teal"
+                    onClick={handleGoToCalendar}
+                  >
                     Xem lịch tuần này
                   </Button>
-                  <Button variant="light" fullWidth color="orange">
+                  <Button 
+                    variant="light" 
+                    fullWidth 
+                    color="orange"
+                    onClick={handleGoToAnalytics}
+                  >
                     Phân tích hiệu suất
                   </Button>
                 </Stack>
@@ -262,9 +301,23 @@ export function Dashboard() {
             setEditingEvent(undefined);
           }}
           title={editingEvent ? 'Chỉnh sửa sự kiện' : 'Tạo sự kiện mới'}
-          size="xl"
-          centered
+          size="lg"
+          centered={false}
           padding="lg"
+          styles={{
+            content: {
+              marginLeft: '0px',
+              marginRight: 'auto',
+              transform: 'translateX(-2000px)',
+              maxWidth: '500px'
+            },
+            inner: {
+              justifyContent: 'flex-start',
+              alignItems: 'center',
+              paddingLeft: '5px',
+              paddingRight: '50px'
+            }
+          }}
         >
           <EventForm
             event={editingEvent}

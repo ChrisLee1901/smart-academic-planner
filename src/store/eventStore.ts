@@ -1,39 +1,114 @@
 import { create } from 'zustand';
 import type { AcademicEvent } from '../types';
+import { databaseService } from '../services/databaseService';
+import { migrateFromLocalStorage } from '../services/migrationService';
 
 interface EventStoreState {
   events: AcademicEvent[];
-  addEvent: (event: AcademicEvent) => void;
-  updateEvent: (eventId: string, updatedData: Partial<AcademicEvent>) => void;
-  deleteEvent: (eventId: string) => void;
+  isLoading: boolean;
+  error: string | null;
+  
+  // Database operations
+  initializeStore: () => Promise<void>;
+  addEvent: (event: AcademicEvent) => Promise<void>;
+  updateEvent: (eventId: string, updatedData: Partial<AcademicEvent>) => Promise<void>;
+  deleteEvent: (eventId: string) => Promise<void>;
+  
+  // Local operations
   getEvents: () => AcademicEvent[];
   setEvents: (events: AcademicEvent[]) => void;
   getEventsByType: (type: AcademicEvent['type']) => AcademicEvent[];
   getEventsByStatus: (status: AcademicEvent['status']) => AcademicEvent[];
   getUpcomingEvents: (days?: number) => AcademicEvent[];
+  
+  // Utility
+  clearError: () => void;
 }
 
 export const useEventStore = create<EventStoreState>((set, get) => ({
   events: [],
+  isLoading: false,
+  error: null,
   
-  addEvent: (event) => {
-    set((state) => ({
-      events: [...state.events, event]
-    }));
+  initializeStore: async () => {
+    set({ isLoading: true, error: null });
+    try {
+      await databaseService.init();
+      
+      // Try to migrate from localStorage first
+      const migrated = await migrateFromLocalStorage();
+      if (migrated) {
+        console.log('Successfully migrated data from localStorage');
+      }
+      
+      const events = await databaseService.getAllEvents();
+      set({ events, isLoading: false });
+      console.log(`Loaded ${events.length} events from database`);
+    } catch (error) {
+      console.error('Failed to initialize store:', error);
+      set({ 
+        error: 'Failed to load events from database', 
+        isLoading: false,
+        events: [] // Use empty array as fallback
+      });
+    }
   },
   
-  updateEvent: (eventId, updatedData) => {
-    set((state) => ({
-      events: state.events.map((event) =>
-        event.id === eventId ? { ...event, ...updatedData } : event
-      )
-    }));
+  addEvent: async (event) => {
+    set({ isLoading: true, error: null });
+    try {
+      await databaseService.addEvent(event);
+      set((state) => ({
+        events: [...state.events, event],
+        isLoading: false
+      }));
+      console.log('Event added successfully');
+    } catch (error) {
+      console.error('Failed to add event:', error);
+      set({ error: 'Failed to add event', isLoading: false });
+      throw error;
+    }
   },
   
-  deleteEvent: (eventId) => {
-    set((state) => ({
-      events: state.events.filter((event) => event.id !== eventId)
-    }));
+  updateEvent: async (eventId, updatedData) => {
+    set({ isLoading: true, error: null });
+    try {
+      const currentEvent = get().events.find(e => e.id === eventId);
+      if (!currentEvent) {
+        throw new Error('Event not found');
+      }
+      
+      const updatedEvent = { ...currentEvent, ...updatedData };
+      await databaseService.updateEvent(eventId, updatedEvent);
+      
+      set((state) => ({
+        events: state.events.map((event) =>
+          event.id === eventId ? updatedEvent : event
+        ),
+        isLoading: false
+      }));
+      console.log('Event updated successfully');
+    } catch (error) {
+      console.error('Failed to update event:', error);
+      set({ error: 'Failed to update event', isLoading: false });
+      throw error;
+    }
+  },
+  
+  deleteEvent: async (eventId) => {
+    set({ isLoading: true, error: null });
+    try {
+      await databaseService.deleteEvent(eventId);
+      set((state) => ({
+        events: state.events.filter((event) => event.id !== eventId),
+        isLoading: false
+      }));
+      console.log('Event deleted successfully');
+    } catch (error) {
+      console.error('Failed to delete event:', error);
+      set({ error: 'Failed to delete event', isLoading: false });
+      throw error;
+    }
   },
   
   getEvents: () => get().events,
@@ -57,5 +132,7 @@ export const useEventStore = create<EventStoreState>((set, get) => ({
       const eventDate = new Date(event.startTime);
       return eventDate >= now && eventDate <= futureDate;
     }).sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime());
-  }
+  },
+  
+  clearError: () => set({ error: null })
 }));
