@@ -18,9 +18,10 @@ interface EventFormProps {
   event?: AcademicEvent;
   onSubmit: (event: AcademicEvent) => void;
   onCancel: () => void;
+  defaultStatus?: AcademicEvent['status']; // New prop to set default status
 }
 
-export function EventForm({ event, onSubmit, onCancel }: EventFormProps) {
+export function EventForm({ event, onSubmit, onCancel, defaultStatus }: EventFormProps) {
   const form = useForm<EventFormData>({
     initialValues: {
       title: event?.title || '',
@@ -28,7 +29,7 @@ export function EventForm({ event, onSubmit, onCancel }: EventFormProps) {
       course: event?.course || '',
       startTime: event?.startTime || new Date(),
       endTime: event?.endTime || undefined,
-      status: event?.status || 'todo',
+      status: event?.status || defaultStatus || 'todo',
       estimatedTime: event?.estimatedTime || undefined,
       description: event?.description || '',
       priority: event?.priority || 'medium',

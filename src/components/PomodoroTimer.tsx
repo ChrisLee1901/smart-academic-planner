@@ -20,9 +20,12 @@ import {
   IconPlayerSkipForward,
   IconClock,
   IconBrain,
-  IconCoffee
+  IconCoffee,
+  IconChecklist
 } from '@tabler/icons-react';
 import { notifications } from '@mantine/notifications';
+import { useEventStore } from '../store/eventStore';
+import type { AcademicEvent } from '../types';
 
 type TimerMode = 'focus' | 'shortBreak' | 'longBreak';
 
@@ -42,11 +45,13 @@ interface TimerSession {
 }
 
 export function PomodoroTimer() {
+  const { events, updateEvent } = useEventStore();
   const [isRunning, setIsRunning] = useState(false);
   const [timeLeft, setTimeLeft] = useState(25 * 60); // 25 minutes in seconds
   const [currentMode, setCurrentMode] = useState<TimerMode>('focus');
   const [sessionsCompleted, setSessionsCompleted] = useState(0);
   const [sessions, setSessions] = useState<TimerSession[]>([]);
+  const [selectedTask, setSelectedTask] = useState<string | null>(null);
   const [config, setConfig] = useState<TimerConfig>({
     focus: 25,
     shortBreak: 5,
@@ -194,6 +199,16 @@ export function PomodoroTimer() {
     if (currentMode === 'focus') {
       setSessionsCompleted(prev => prev + 1);
       
+      // Update selected task's actual time
+      if (selectedTask) {
+        const task = events.find(e => e.id === selectedTask);
+        if (task) {
+          const sessionDuration = config.focus / 60; // Convert to hours
+          const newActualTime = (task.actualTime || 0) + sessionDuration;
+          updateEvent(selectedTask, { actualTime: newActualTime });
+        }
+      }
+      
       // Determine next break type
       const nextSessionCount = sessionsCompleted + 1;
       const shouldTakeLongBreak = nextSessionCount % config.sessionsUntilLongBreak === 0;
@@ -280,6 +295,25 @@ export function PomodoroTimer() {
             {modeInfo.label}
           </Badge>
         </Group>
+
+        {/* Task Selection */}
+        {currentMode === 'focus' && (
+          <Select
+            placeholder="Chọn nhiệm vụ để tập trung"
+            data={events
+              .filter(e => e.status !== 'done')
+              .map(e => ({
+                value: e.id,
+                label: `${e.title} (${e.course})`
+              }))
+            }
+            value={selectedTask}
+            onChange={setSelectedTask}
+            leftSection={<IconChecklist size={16} />}
+            clearable
+            searchable
+          />
+        )}
 
         {/* Timer Display */}
         <Center>

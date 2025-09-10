@@ -32,6 +32,7 @@ import { HabitTracker } from '../components/HabitTracker';
 import { ProductivityAnalytics } from '../components/ProductivityAnalytics';
 import { AIStudyAssistant } from '../components/AIStudyAssistant';
 import { EventForm } from '../components/EventForm';
+import { FloatingActionButton } from '../components/FloatingActionButton';
 import { useEventStore } from '../store/eventStore';
 import type { AcademicEvent } from '../types';
 import { getDaysUntil } from '../utils/dateUtils';
@@ -69,6 +70,14 @@ export function Dashboard({ onTabChange }: DashboardProps) {
       setEditingEvent(undefined);
     } catch (error) {
       console.error('Failed to save event:', error);
+    }
+  };
+
+  const handleQuickAdd = async (eventData: AcademicEvent) => {
+    try {
+      await addEvent(eventData);
+    } catch (error) {
+      console.error('Failed to add event:', error);
     }
   };
 
@@ -121,9 +130,29 @@ export function Dashboard({ onTabChange }: DashboardProps) {
           <Title order={1} mb="xs">
             🎯 Dashboard
           </Title>
-          <Text c="dimmed" size="lg">
+          <Text c="dimmed" size="lg" mb="md">
             Chào mừng bạn quay trở lại! Hãy xem tình hình học tập hôm nay.
           </Text>
+          
+          {/* Quick Add Button */}
+          <Group justify="center" mb="lg">
+            <Button
+              leftSection={<IconCalendarEvent size={18} />}
+              variant="gradient"
+              gradient={{ from: 'blue', to: 'cyan' }}
+              size="md"
+              onClick={() => setIsFormOpen(true)}
+              styles={{
+                root: {
+                  padding: '12px 24px',
+                  fontSize: '16px',
+                  fontWeight: 600,
+                }
+              }}
+            >
+              ➕ Tạo nhiệm vụ mới
+            </Button>
+          </Group>
         </Box>
 
         {/* Statistics Cards */}
@@ -184,8 +213,19 @@ export function Dashboard({ onTabChange }: DashboardProps) {
 
         {/* Kanban Board */}
         <Stack gap="md">
-          <Title order={2}>📋 Bảng quản lý nhiệm vụ</Title>
-          
+          <Group justify="space-between" align="center">
+            <Title order={2}>📋 Bảng quản lý nhiệm vụ</Title>
+            <Button
+              leftSection={<IconCalendarEvent size={16} />}
+              variant="filled"
+              color="blue"
+              onClick={() => setIsFormOpen(true)}
+              size="sm"
+            >
+              ➕ Thêm nhiệm vụ mới
+            </Button>
+          </Group>
+
           <Grid gutter="md">
             <Grid.Col span={{ base: 12, sm: 4 }}>
               <KanbanColumn
@@ -195,6 +235,8 @@ export function Dashboard({ onTabChange }: DashboardProps) {
                 onEdit={handleEditEvent}
                 onDelete={handleDeleteEvent}
                 onStatusChange={handleStatusChange}
+                onAddEvent={() => setIsFormOpen(true)}
+                onQuickAdd={handleQuickAdd}
                 color="blue"
               />
             </Grid.Col>
@@ -207,6 +249,8 @@ export function Dashboard({ onTabChange }: DashboardProps) {
                 onEdit={handleEditEvent}
                 onDelete={handleDeleteEvent}
                 onStatusChange={handleStatusChange}
+                onAddEvent={() => setIsFormOpen(true)}
+                onQuickAdd={handleQuickAdd}
                 color="yellow"
               />
             </Grid.Col>
@@ -219,6 +263,8 @@ export function Dashboard({ onTabChange }: DashboardProps) {
                 onEdit={handleEditEvent}
                 onDelete={handleDeleteEvent}
                 onStatusChange={handleStatusChange}
+                onAddEvent={() => setIsFormOpen(true)}
+                onQuickAdd={handleQuickAdd}
                 color="green"
               />
             </Grid.Col>
@@ -280,6 +326,15 @@ export function Dashboard({ onTabChange }: DashboardProps) {
                 </Group>
                 
                 <Stack gap="xs">
+                  <Button 
+                    variant="light" 
+                    fullWidth 
+                    color="blue"
+                    onClick={() => setIsFormOpen(true)}
+                    leftSection={<IconCalendarEvent size={16} />}
+                  >
+                    Tạo sự kiện nhanh
+                  </Button>
                   <Button 
                     variant="light" 
                     fullWidth 
@@ -355,20 +410,16 @@ export function Dashboard({ onTabChange }: DashboardProps) {
           }}
           title={editingEvent ? 'Chỉnh sửa sự kiện' : 'Tạo sự kiện mới'}
           size="lg"
-          centered={false}
+          centered={true}
           padding="lg"
+          zIndex={1000}
           styles={{
             content: {
-              marginLeft: '0px',
-              marginRight: 'auto',
-              transform: 'translateX(-200px)',
-              maxWidth: '500px'
+              position: 'relative',
             },
             inner: {
-              justifyContent: 'flex-start',
-              alignItems: 'center',
-              paddingLeft: '5px',
-              paddingRight: '50px'
+              paddingLeft: '1rem',
+              paddingRight: '1rem',
             }
           }}
         >
@@ -381,6 +432,9 @@ export function Dashboard({ onTabChange }: DashboardProps) {
             }}
           />
         </Modal>
+
+        {/* Floating Action Button */}
+        <FloatingActionButton onAddEvent={handleQuickAdd} />
       </Stack>
     </Container>
   );

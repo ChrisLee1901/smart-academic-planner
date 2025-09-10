@@ -2,6 +2,7 @@ import { Stack, Title, Paper, Text, Badge, Group, Button, ActionIcon } from '@ma
 import { IconPlus, IconFilter } from '@tabler/icons-react';
 import type { AcademicEvent } from '../types';
 import { TaskCard } from './TaskCard';
+import { QuickAddTask } from './QuickAddTask';
 
 interface KanbanColumnProps {
   title: string;
@@ -11,6 +12,7 @@ interface KanbanColumnProps {
   onDelete: (eventId: string) => void;
   onStatusChange: (eventId: string, status: AcademicEvent['status']) => void;
   onAddEvent?: () => void;
+  onQuickAdd?: (event: AcademicEvent) => void; // New prop for quick add
   color: string;
 }
 
@@ -22,6 +24,7 @@ export function KanbanColumn({
   onDelete,
   onStatusChange,
   onAddEvent,
+  onQuickAdd,
   color
 }: KanbanColumnProps) {
   const getStatusDescription = () => {
@@ -75,10 +78,22 @@ export function KanbanColumn({
             <ActionIcon variant="light" color={color} size="sm">
               <IconFilter size={16} />
             </ActionIcon>
-            {status === 'todo' && onAddEvent && (
-              <ActionIcon variant="light" color={color} size="sm" onClick={onAddEvent}>
-                <IconPlus size={16} />
-              </ActionIcon>
+            {onAddEvent && (
+              <Button
+                variant="light"
+                color={color}
+                size="xs"
+                leftSection={<IconPlus size={14} />}
+                onClick={onAddEvent}
+                styles={{
+                  root: {
+                    fontWeight: 600,
+                    fontSize: '12px'
+                  }
+                }}
+              >
+                Thêm
+              </Button>
             )}
           </Group>
         </Group>
@@ -97,19 +112,46 @@ export function KanbanColumn({
             ))
           ) : (
             <Paper p="xl" style={{ border: '2px dashed #e9ecef', textAlign: 'center' }}>
-              <Stack align="center" gap="xs">
+              <Stack align="center" gap="md">
                 <Text size="sm" c="dimmed">
-                  {status === 'todo' && 'Không có nhiệm vụ nào cần làm'}
-                  {status === 'in-progress' && 'Không có nhiệm vụ nào đang thực hiện'}
+                  {status === 'todo' && 'Chưa có nhiệm vụ nào cần làm'}
+                  {status === 'in-progress' && 'Chưa có nhiệm vụ nào đang thực hiện'}
                   {status === 'done' && 'Chưa hoàn thành nhiệm vụ nào'}
                 </Text>
-                {status === 'todo' && onAddEvent && (
-                  <Button variant="light" color={color} size="xs" onClick={onAddEvent}>
-                    Thêm nhiệm vụ đầu tiên
+                {onAddEvent && (
+                  <Button 
+                    variant="light" 
+                    color={color} 
+                    size="md"
+                    leftSection={<IconPlus size={18} />}
+                    onClick={onAddEvent}
+                    styles={{
+                      root: {
+                        fontWeight: 600,
+                        border: `2px solid var(--mantine-color-${color}-2)`,
+                        '&:hover': {
+                          backgroundColor: `var(--mantine-color-${color}-1)`,
+                          border: `2px solid var(--mantine-color-${color}-4)`
+                        }
+                      }
+                    }}
+                  >
+                    {status === 'todo' && 'Tạo nhiệm vụ đầu tiên'}
+                    {status === 'in-progress' && 'Thêm nhiệm vụ mới'}
+                    {status === 'done' && 'Thêm nhiệm vụ mới'}
                   </Button>
                 )}
               </Stack>
             </Paper>
+          )}
+          
+          {/* Quick Add Task Component */}
+          {onQuickAdd && (
+            <QuickAddTask
+              status={status}
+              onAdd={onQuickAdd}
+              color={color}
+            />
           )}
         </Stack>
 
