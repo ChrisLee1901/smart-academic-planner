@@ -24,8 +24,7 @@ import {
   IconChecklist
 } from '@tabler/icons-react';
 import { notifications } from '@mantine/notifications';
-import { useEventStore } from '../store/eventStore';
-import type { AcademicEvent } from '../types';
+import { integrationService } from '../services/integrationService';
 
 type TimerMode = 'focus' | 'shortBreak' | 'longBreak';
 
@@ -42,10 +41,11 @@ interface TimerSession {
   completed: boolean;
   startTime: Date;
   endTime?: Date;
+  taskId?: string;
 }
 
 export function PomodoroTimer() {
-  const { events, updateEvent } = useEventStore();
+  const [availableTasks, setAvailableTasks] = useState<Array<{value: string, label: string}>>([]);
   const [isRunning, setIsRunning] = useState(false);
   const [timeLeft, setTimeLeft] = useState(25 * 60); // 25 minutes in seconds
   const [currentMode, setCurrentMode] = useState<TimerMode>('focus');
@@ -61,6 +61,24 @@ export function PomodoroTimer() {
 
   const intervalRef = useRef<number | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  // Load available tasks
+  useEffect(() => {
+    const loadTasks = () => {
+      const tasks = integrationService.getAvailableTasks();
+      setAvailableTasks(tasks);
+    };
+
+    loadTasks();
+    
+    // Listen for task updates
+    const handleTaskUpdated = () => loadTasks();
+    window.addEventListener('taskUpdated', handleTaskUpdated);
+    
+    return () => {
+      window.removeEventListener('taskUpdated', handleTaskUpdated);
+    };
+  }, []);
 
   // Initialize audio
   useEffect(() => {
@@ -130,7 +148,8 @@ export function PomodoroTimer() {
         mode: currentMode,
         duration: getTimerDuration(currentMode),
         completed: false,
-        startTime
+        startTime,
+        taskId: selectedTask || undefined
       };
       
       setSessions(prev => [...prev, newSession]);
@@ -186,7 +205,7 @@ export function PomodoroTimer() {
       }
     }
 
-    // Mark session as completed
+    // Mark session as completed and integrate with other systems
     const endTime = new Date();
     setSessions(prev => 
       prev.map((session, index) => 
@@ -199,14 +218,15 @@ export function PomodoroTimer() {
     if (currentMode === 'focus') {
       setSessionsCompleted(prev => prev + 1);
       
-      // Update selected task's actual time
-      if (selectedTask) {
-        const task = events.find(e => e.id === selectedTask);
-        if (task) {
-          const sessionDuration = config.focus / 60; // Convert to hours
-          const newActualTime = (task.actualTime || 0) + sessionDuration;
-          updateEvent(selectedTask, { actualTime: newActualTime });
-        }
+      // Integrate with other systems through integration service
+      const session = sessions[sessions.length - 1];
+      if (session) {
+        integrationService.completePomodoroSession({
+          taskId: session.taskId,
+          mode: currentMode,
+          duration: config.focus,
+          productivity: 4 // Could be made configurable
+        });
       }
       
       // Determine next break type
@@ -299,19 +319,14 @@ export function PomodoroTimer() {
         {/* Task Selection */}
         {currentMode === 'focus' && (
           <Select
-            placeholder="Chọn nhiệm vụ để tập trung"
-            data={events
-              .filter(e => e.status !== 'done')
-              .map(e => ({
-                value: e.id,
-                label: `${e.title} (${e.course})`
-              }))
-            }
+            placeholder="Chọn nhiệm vụ để tập trung (Tích hợp thông minh)"
+            data={availableTasks}
             value={selectedTask}
             onChange={setSelectedTask}
             leftSection={<IconChecklist size={16} />}
             clearable
             searchable
+            description="Chọn nhiệm vụ để tự động cập nhật thời gian thực tế và tiến độ mục tiêu"
           />
         )}
 

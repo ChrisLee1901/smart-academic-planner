@@ -33,9 +33,11 @@ import { ProductivityAnalytics } from '../components/ProductivityAnalytics';
 import { AIStudyAssistant } from '../components/AIStudyAssistant';
 import { EventForm } from '../components/EventForm';
 import { FloatingActionButton } from '../components/FloatingActionButton';
+import { IntegratedDashboard } from '../components/IntegratedDashboard';
 import { useEventStore } from '../store/eventStore';
 import type { AcademicEvent } from '../types';
 import { getDaysUntil } from '../utils/dateUtils';
+import { integrationService } from '../services/integrationService';
 
 interface DashboardProps {
   onTabChange: (tab: string) => void;
@@ -85,7 +87,13 @@ export function Dashboard({ onTabChange }: DashboardProps) {
     try {
       const event = events.find(e => e.id === eventId);
       if (event) {
-        await updateEvent(eventId, { ...event, status });
+        const updatedEvent = { ...event, status };
+        await updateEvent(eventId, updatedEvent);
+        
+        // Integrate with other systems when task is completed
+        if (status === 'done') {
+          integrationService.completeTask(updatedEvent);
+        }
       }
     } catch (error) {
       console.error('Failed to update event status:', error);
@@ -384,7 +392,12 @@ export function Dashboard({ onTabChange }: DashboardProps) {
 
         {/* New Study Tools Section */}
         <Stack gap="xl" mt="xl">
-          <Title order={2} ta="center">🚀 Công cụ hỗ trợ học tập</Title>
+          <Title order={2} ta="center">🚀 Hệ thống Tích hợp Thông minh</Title>
+          
+          {/* Integrated Dashboard */}
+          <IntegratedDashboard />
+          
+          <Title order={2} ta="center">🛠️ Công cụ hỗ trợ học tập</Title>
           
           {/* AI Study Assistant */}
           <AIStudyAssistant />
