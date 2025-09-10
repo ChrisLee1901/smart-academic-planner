@@ -352,8 +352,18 @@ export function CalendarView() {
         onClose={handleCancel}
         title={modalTitle}
         size="lg"
-        centered
+        centered={true}
+        padding="lg"
         zIndex={1000}
+        styles={{
+          content: {
+            position: 'relative',
+          },
+          inner: {
+            paddingLeft: '1rem',
+            paddingRight: '1rem',
+          }
+        }}
       >
         <EventForm
           event={editingEvent}

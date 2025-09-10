@@ -368,20 +368,16 @@ export function CalendarView() {
         onClose={handleCancel}
         title={modalTitle}
         size="lg"
-        centered={false}
+        centered={true}
         padding="lg"
+        zIndex={1000}
         styles={{
           content: {
-            marginLeft: '0px',
-            marginRight: 'auto',
-            transform: 'translateX(-1000px)',
-            maxWidth: '500px'
+            position: 'relative',
           },
           inner: {
-            justifyContent: 'flex-start',
-            alignItems: 'center',
-            paddingLeft: '5px',
-            paddingRight: '50px'
+            paddingLeft: '1rem',
+            paddingRight: '1rem',
           }
         }}
       >
