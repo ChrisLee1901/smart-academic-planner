@@ -39,6 +39,15 @@ export function EventCard({ event, onEdit, onDelete, onStatusChange }: EventCard
     return 0;
   };
 
+  const getStatusLabel = (status: AcademicEvent['status']) => {
+    switch (status) {
+      case 'todo': return 'Cần làm';
+      case 'in-progress': return 'Đang làm';
+      case 'done': return 'Hoàn thành';
+      default: return status;
+    }
+  };
+
   return (
     <Card shadow="sm" padding="lg" radius="md" withBorder>
       <Stack gap="sm">
@@ -121,7 +130,7 @@ export function EventCard({ event, onEdit, onDelete, onStatusChange }: EventCard
         {/* Status and Progress */}
         <Group justify="space-between" align="center">
           <Badge color={statusColors[event.status]} variant="light">
-            {event.status}
+            {getStatusLabel(event.status)}
           </Badge>
           
           {event.estimatedTime && (

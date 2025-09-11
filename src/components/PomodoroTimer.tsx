@@ -25,6 +25,7 @@ import {
 } from '@tabler/icons-react';
 import { notifications } from '@mantine/notifications';
 import { integrationService } from '../services/integrationService';
+import { useEventStore } from '../store/eventStore';
 
 type TimerMode = 'focus' | 'shortBreak' | 'longBreak';
 
@@ -45,6 +46,7 @@ interface TimerSession {
 }
 
 export function PomodoroTimer() {
+  const { events } = useEventStore();
   const [availableTasks, setAvailableTasks] = useState<Array<{value: string, label: string}>>([]);
   const [isRunning, setIsRunning] = useState(false);
   const [timeLeft, setTimeLeft] = useState(25 * 60); // 25 minutes in seconds
@@ -62,10 +64,17 @@ export function PomodoroTimer() {
   const intervalRef = useRef<number | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
-  // Load available tasks
+  // Load available tasks from event store
   useEffect(() => {
     const loadTasks = () => {
-      const tasks = integrationService.getAvailableTasks();
+      // Use events from store instead of integrationService
+      const tasks = events
+        .filter(event => event.status !== 'done')
+        .map(event => ({
+          value: event.id,
+          label: `${event.title} ${event.course ? `(${event.course})` : ''}`,
+          estimatedTime: event.estimatedTime
+        }));
       setAvailableTasks(tasks);
     };
 
@@ -78,7 +87,7 @@ export function PomodoroTimer() {
     return () => {
       window.removeEventListener('taskUpdated', handleTaskUpdated);
     };
-  }, []);
+  }, [events]); // Depend on events from store
 
   // Initialize audio
   useEffect(() => {
@@ -319,14 +328,20 @@ export function PomodoroTimer() {
         {/* Task Selection */}
         {currentMode === 'focus' && (
           <Select
-            placeholder="Chọn nhiệm vụ để tập trung (Tích hợp thông minh)"
+            placeholder={availableTasks.length > 0 
+              ? "Chọn nhiệm vụ để tập trung (Tích hợp thông minh)" 
+              : "Không có nhiệm vụ nào - Hãy tạo sự kiện mới"
+            }
             data={availableTasks}
             value={selectedTask}
             onChange={setSelectedTask}
             leftSection={<IconChecklist size={16} />}
             clearable
             searchable
-            description="Chọn nhiệm vụ để tự động cập nhật thời gian thực tế và tiến độ mục tiêu"
+            allowDeselect={true}
+            comboboxProps={{ zIndex: 1000 }}
+            description={`${availableTasks.length} nhiệm vụ khả dụng - Chọn để tự động cập nhật thời gian thực tế`}
+            disabled={availableTasks.length === 0}
           />
         )}
 
@@ -456,6 +471,8 @@ export function PomodoroTimer() {
               { value: '60', label: '60 phút' }
             ]}
             size="xs"
+            comboboxProps={{ zIndex: 1000 }}
+            allowDeselect={false}
             style={{ width: '150px' }}
           />
         </Group>

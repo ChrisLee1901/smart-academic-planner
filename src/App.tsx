@@ -64,8 +64,16 @@ function App() {
 
   return (
     <MantineProvider theme={theme}>
-      <ModalsProvider>
-        <Notifications position="top-right" limit={5} />
+      <ModalsProvider 
+        modalProps={{ 
+          zIndex: 200,
+          styles: {
+            header: { paddingBottom: '1rem' },
+            body: { padding: '1rem' }
+          }
+        }}
+      >
+        <Notifications position="top-right" limit={5} zIndex={9999} />
         {error && (
           <div style={{ 
             background: '#ffe6e6', 

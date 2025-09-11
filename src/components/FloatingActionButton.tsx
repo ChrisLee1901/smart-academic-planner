@@ -177,7 +177,11 @@ export function FloatingActionButton({ onAddEvent }: FloatingActionButtonProps) 
         size="lg"
         centered
         padding="lg"
-        zIndex={2000}
+        zIndex={150}
+        styles={{
+          header: { paddingBottom: '1rem' },
+          body: { padding: 0 }
+        }}
       >
         <EventForm
           defaultStatus={defaultStatus}

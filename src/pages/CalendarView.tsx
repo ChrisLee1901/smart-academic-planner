@@ -370,8 +370,10 @@ export function CalendarView() {
         size="lg"
         centered={true}
         padding="lg"
-        zIndex={1000}
+        zIndex={120}
         styles={{
+          header: { paddingBottom: '1rem' },
+          body: { padding: 0 },
           content: {
             position: 'relative',
           },

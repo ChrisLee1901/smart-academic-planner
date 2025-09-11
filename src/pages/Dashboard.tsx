@@ -425,7 +425,11 @@ export function Dashboard({ onTabChange }: DashboardProps) {
           size="lg"
           centered={true}
           padding="lg"
-          zIndex={1000}
+          zIndex={100}
+          styles={{
+            header: { paddingBottom: '1rem' },
+            body: { padding: 0 }
+          }}
         >
           <EventForm
             event={editingEvent}

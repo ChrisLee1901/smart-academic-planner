@@ -64,12 +64,17 @@ export function EventForm({ event, onSubmit, onCancel, defaultStatus }: EventFor
           <Grid.Col span={{ base: 12, sm: 6 }}>
             <Select
               label="Loại sự kiện"
+              placeholder="Chọn loại sự kiện"
               data={[
                 { value: 'deadline', label: 'Deadline' },
                 { value: 'class', label: 'Lớp học' },
                 { value: 'project', label: 'Dự án' },
                 { value: 'personal', label: 'Cá nhân' }
               ]}
+              allowDeselect={false}
+              searchable
+              clearable={false}
+              comboboxProps={{ zIndex: 1000 }}
               {...form.getInputProps('type')}
             />
           </Grid.Col>
@@ -77,11 +82,16 @@ export function EventForm({ event, onSubmit, onCancel, defaultStatus }: EventFor
           <Grid.Col span={{ base: 12, sm: 6 }}>
             <Select
               label="Ưu tiên"
+              placeholder="Chọn mức ưu tiên"
               data={[
                 { value: 'low', label: 'Thấp' },
                 { value: 'medium', label: 'Trung bình' },
                 { value: 'high', label: 'Cao' }
               ]}
+              allowDeselect={false}
+              searchable
+              clearable={false}
+              comboboxProps={{ zIndex: 1000 }}
               {...form.getInputProps('priority')}
             />
           </Grid.Col>
@@ -99,6 +109,7 @@ export function EventForm({ event, onSubmit, onCancel, defaultStatus }: EventFor
               label="Bắt đầu"
               placeholder="Chọn ngày và thời gian"
               required
+              popoverProps={{ zIndex: 1000 }}
               {...form.getInputProps('startTime')}
             />
           </Grid.Col>
@@ -107,6 +118,7 @@ export function EventForm({ event, onSubmit, onCancel, defaultStatus }: EventFor
             <DateTimePicker
               label="Kết thúc"
               placeholder="Chọn ngày và thời gian (tùy chọn)"
+              popoverProps={{ zIndex: 1000 }}
               {...form.getInputProps('endTime')}
             />
           </Grid.Col>
@@ -116,11 +128,16 @@ export function EventForm({ event, onSubmit, onCancel, defaultStatus }: EventFor
           <Grid.Col span={{ base: 12, sm: 6 }}>
             <Select
               label="Trạng thái"
+              placeholder="Chọn trạng thái"
               data={[
-                { value: 'todo', label: 'Chưa làm' },
+                { value: 'todo', label: 'Cần làm' },
                 { value: 'in-progress', label: 'Đang làm' },
                 { value: 'done', label: 'Hoàn thành' }
               ]}
+              allowDeselect={false}
+              searchable
+              clearable={false}
+              comboboxProps={{ zIndex: 1000 }}
               {...form.getInputProps('status')}
             />
           </Grid.Col>
