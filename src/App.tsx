@@ -7,7 +7,8 @@ import { useNotificationSystem } from './hooks/useNotificationSystem';
 import { MainLayout } from './layouts/MainLayout';
 import { Dashboard } from './pages/Dashboard';
 import { CalendarView } from './pages/CalendarView';
-import AnalyticsView from './pages/AnalyticsView';
+import { DoNowView } from './pages/DoNowView';
+import  AnalyticsView from './pages/AnalyticsView';
 import { AIAssistantView } from './pages/AIAssistantView';
 
 // Import Mantine CSS
@@ -51,6 +52,8 @@ function App() {
     switch (activeTab) {
       case 'dashboard':
         return <Dashboard onTabChange={setActiveTab} />;
+      case 'do-now':
+        return <DoNowView />;
       case 'calendar':
         return <CalendarView />;
       case 'analytics':

@@ -11,7 +11,8 @@ import {
   IconDashboard,
   IconCalendar,
   IconChartBar,
-  IconBrain
+  IconBrain,
+  IconTarget
 } from '@tabler/icons-react';
 
 interface MainLayoutProps {
@@ -29,6 +30,12 @@ export function MainLayout({ children, activeTab, onTabChange }: MainLayoutProps
       value: 'dashboard', 
       icon: IconDashboard,
       description: 'Tổng quan'
+    },
+    { 
+      label: 'Làm Ngay', 
+      value: 'do-now', 
+      icon: IconTarget,
+      description: 'AI ưu tiên tasks'
     },
     { 
       label: 'Lịch', 
