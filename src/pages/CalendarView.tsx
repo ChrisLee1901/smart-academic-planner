@@ -40,6 +40,7 @@ export function CalendarView() {
     const today = new Date();
     setCurrentDate(today);
     setSelectedDate(today);
+    setViewMode('day'); // Auto switch to day view when going to today
   };
 
   const navigatePrevious = () => {
@@ -302,6 +303,7 @@ export function CalendarView() {
                           const today = new Date();
                           setSelectedDate(today);
                           setCurrentDate(today);
+                          setViewMode('day'); // Auto switch to day view
                         }}
                       >
                         Hôm nay
@@ -314,6 +316,7 @@ export function CalendarView() {
                           const tomorrow = dayjs().add(1, 'day').toDate();
                           setSelectedDate(tomorrow);
                           setCurrentDate(tomorrow);
+                          setViewMode('day'); // Auto switch to day view
                         }}
                       >
                         Ngày mai
@@ -326,9 +329,23 @@ export function CalendarView() {
                           const nextWeek = dayjs().add(7, 'day').toDate();
                           setSelectedDate(nextWeek);
                           setCurrentDate(nextWeek);
+                          setViewMode('week'); // Auto switch to week view
                         }}
                       >
                         Tuần sau
+                      </Button>
+                      <Button 
+                        size="xs" 
+                        variant="light" 
+                        fullWidth
+                        onClick={() => {
+                          const thisMonth = new Date();
+                          setSelectedDate(thisMonth);
+                          setCurrentDate(thisMonth);
+                          setViewMode('month'); // Auto switch to month view
+                        }}
+                      >
+                        Tháng này
                       </Button>
                     </Stack>
                   </Stack>
