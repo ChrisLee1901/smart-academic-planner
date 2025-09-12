@@ -80,11 +80,11 @@ class DatabaseService {
       
       const eventToStore = {
         ...event,
-        startTime: event.startTime.toISOString(),
-        endTime: event.endTime ? event.endTime.toISOString() : undefined
+        startTime: event.startTime instanceof Date ? event.startTime.toISOString() : new Date(event.startTime).toISOString(),
+        endTime: event.endTime ? (event.endTime instanceof Date ? event.endTime.toISOString() : new Date(event.endTime).toISOString()) : undefined
       };
 
-      const request = store.add(eventToStore);
+      const request = store.put(eventToStore);
 
       request.onsuccess = () => {
         console.log('Event added to database');
@@ -109,8 +109,8 @@ class DatabaseService {
       
       const eventToStore = {
         ...updatedEvent,
-        startTime: updatedEvent.startTime.toISOString(),
-        endTime: updatedEvent.endTime ? updatedEvent.endTime.toISOString() : undefined
+        startTime: updatedEvent.startTime instanceof Date ? updatedEvent.startTime.toISOString() : new Date(updatedEvent.startTime).toISOString(),
+        endTime: updatedEvent.endTime ? (updatedEvent.endTime instanceof Date ? updatedEvent.endTime.toISOString() : new Date(updatedEvent.endTime).toISOString()) : undefined
       };
 
       const request = store.put(eventToStore);
