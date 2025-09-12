@@ -8,11 +8,17 @@ import {
   Stack,
   Group,
   TagsInput,
-  Grid
+  Grid,
+  Alert,
+  Text,
+  Badge,
 } from '@mantine/core';
 import { DateTimePicker } from '@mantine/dates';
+import { IconClock } from '@tabler/icons-react';
 import type { AcademicEvent, EventFormData } from '../types';
 import { generateId } from '../utils/dateUtils';
+import { ProcrastinationAnalysisService } from '../services/procrastinationService';
+import dayjs from 'dayjs';
 
 interface EventFormProps {
   event?: AcademicEvent;
@@ -40,6 +46,43 @@ export function EventForm({ event, onSubmit, onCancel, defaultStatus }: EventFor
       startTime: (value) => !value ? 'Thời gian bắt đầu không được để trống' : null,
     }
   });
+
+  // Calculate realistic deadline when form values change
+  const getRealisticDeadlineInfo = () => {
+    const values = form.values;
+    if (!values.estimatedTime || !values.startTime) {
+      return null;
+    }
+
+    const tempEvent: AcademicEvent = {
+      id: 'temp',
+      title: values.title,
+      type: values.type,
+      startTime: values.startTime,
+      endTime: values.endTime,
+      estimatedTime: values.estimatedTime,
+      priority: values.priority,
+      status: values.status,
+      course: values.course,
+      description: values.description,
+      tags: values.tags
+    };
+
+    const realisticDeadline = ProcrastinationAnalysisService.calculateRealisticDeadline(tempEvent);
+    const officialDeadline = dayjs(values.startTime);
+    const realistic = dayjs(realisticDeadline);
+    
+    const timeDifference = officialDeadline.diff(realistic, 'hour', true);
+    
+    return {
+      realisticDeadline: realistic.format('DD/MM/YYYY HH:mm'),
+      timeDifference: Math.round(timeDifference * 10) / 10,
+      isEarlier: realistic.isBefore(officialDeadline),
+      urgencyLevel: timeDifference > 24 ? 'low' : timeDifference > 12 ? 'medium' : 'high'
+    };
+  };
+
+  const realisticInfo = getRealisticDeadlineInfo();
 
   const handleSubmit = (values: EventFormData) => {
     const eventData: AcademicEvent = {
@@ -153,6 +196,42 @@ export function EventForm({ event, onSubmit, onCancel, defaultStatus }: EventFor
             />
           </Grid.Col>
         </Grid>
+
+        {/* AI Realistic Deadline Suggestion */}
+        {realisticInfo && (
+          <Alert
+            icon={<IconClock size={16} />}
+            color={realisticInfo.urgencyLevel === 'high' ? 'red' : 
+                   realisticInfo.urgencyLevel === 'medium' ? 'yellow' : 'blue'}
+            variant="light"
+            title="🤖 AI Gợi ý Deadline Thực tế"
+          >
+            <Stack gap="xs">
+              <Group gap="xs">
+                <Text size="sm" fw={500}>
+                  {realisticInfo.realisticDeadline}
+                </Text>
+                {realisticInfo.isEarlier && (
+                  <Badge size="xs" color={realisticInfo.urgencyLevel === 'high' ? 'red' : 'orange'}>
+                    {realisticInfo.timeDifference}h sớm hơn deadline chính thức
+                  </Badge>
+                )}
+              </Group>
+              <Text size="xs" c="dimmed">
+                {realisticInfo.urgencyLevel === 'high' 
+                  ? '⚠️ Nên bắt đầu ngay để tránh trễ deadline'
+                  : realisticInfo.urgencyLevel === 'medium'
+                  ? '⏰ Nên bắt đầu trong vài giờ tới'
+                  : '✅ Còn thời gian, nhưng nên lập kế hoạch sớm'
+                }
+                <br />
+                <span style={{ fontSize: '10px', opacity: 0.7 }}>
+                  AI dự đoán dựa trên: ưu tiên {form.values.priority || 'medium'} + loại {form.values.type}
+                </span>
+              </Text>
+            </Stack>
+          </Alert>
+        )}
 
         <Textarea
           label="Mô tả chi tiết"

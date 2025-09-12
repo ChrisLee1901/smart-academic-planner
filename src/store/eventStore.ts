@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import type { AcademicEvent } from '../types';
 import { databaseService } from '../services/databaseService';
 import { migrateFromLocalStorage } from '../services/migrationService';
+import { ProcrastinationAnalysisService } from '../services/procrastinationService';
 
 interface EventStoreState {
   events: AcademicEvent[];
@@ -57,12 +58,24 @@ export const useEventStore = create<EventStoreState>((set, get) => ({
   addEvent: async (event) => {
     set({ isLoading: true, error: null });
     try {
-      await databaseService.addEvent(event);
+      // Calculate realistic deadline based on procrastination patterns
+      const currentEvents = get().events;
+      const realisticDeadline = ProcrastinationAnalysisService.calculateRealisticDeadline(event);
+      const procrastinationCoefficient = ProcrastinationAnalysisService.calculateProcrastinationCoefficient(currentEvents).overallCoefficient;
+      
+      // Add calculated fields to event
+      const eventWithRealisticData: AcademicEvent = {
+        ...event,
+        realisticDeadline,
+        procrastinationCoefficient
+      };
+      
+      await databaseService.addEvent(eventWithRealisticData);
       set((state) => ({
-        events: [...state.events, event],
+        events: [...state.events, eventWithRealisticData],
         isLoading: false
       }));
-      console.log('Event added successfully');
+      console.log('Event added successfully with realistic deadline');
     } catch (error) {
       console.error('Failed to add event:', error);
       set({ error: 'Failed to add event', isLoading: false });
@@ -79,6 +92,13 @@ export const useEventStore = create<EventStoreState>((set, get) => ({
       }
       
       const updatedEvent = { ...currentEvent, ...updatedData };
+      
+      // If task is being marked as completed, update procrastination patterns
+      if (updatedData.status === 'done' && currentEvent.status !== 'done') {
+        const allEvents = get().events;
+        ProcrastinationAnalysisService.updatePatternOnTaskCompletion([...allEvents, updatedEvent]);
+      }
+      
       await databaseService.updateEvent(eventId, updatedEvent);
       
       set((state) => ({

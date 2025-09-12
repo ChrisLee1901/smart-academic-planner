@@ -12,7 +12,8 @@ import {
   ThemeIcon,
   RingProgress,
   Progress,
-  Alert
+  Alert,
+  List
 } from '@mantine/core';
 import { 
   IconChartBar,
@@ -23,9 +24,12 @@ import {
   IconBrain,
   IconFlame,
   IconMoodSmile,
-  IconMoodSad
+  IconMoodSad,
+  IconAlertTriangle,
+  IconCheckbox
 } from '@tabler/icons-react';
 import { useEventStore } from '../store/eventStore';
+import { ProcrastinationAnalysisService } from '../services/procrastinationService';
 import dayjs from 'dayjs';
 
 interface ProductivityMetrics {
@@ -124,6 +128,11 @@ export function AnalyticsView() {
       procrastinationScore,
       streakCount
     };
+  }, [events]);
+
+  // Get procrastination insights using AI service
+  const procrastinationInsights = useMemo(() => {
+    return ProcrastinationAnalysisService.getProcrastinationInsights(events);
   }, [events]);
 
   const getProductivityColor = (rate: number) => {
@@ -368,6 +377,57 @@ export function AnalyticsView() {
               <Alert color="orange" variant="light">
                 ⚠️ <strong>Cẩn thận!</strong> Chỉ số trì hoãn cao ({Math.round(analytics.procrastinationScore)}%). Hãy thử phương pháp Pomodoro hoặc chia nhỏ các task lớn.
               </Alert>
+            )}
+            
+            {/* Procrastination Analysis Insights */}
+            {procrastinationInsights.recommendations.length > 0 && (
+              <Card withBorder>
+                <Stack gap="md">
+                  <Group>
+                    <ThemeIcon color="orange" variant="light">
+                      <IconBrain size={20} />
+                    </ThemeIcon>
+                    <Text fw={600}>🤖 AI Phân tích Procrastination</Text>
+                  </Group>
+                  
+                  <Group gap="xs">
+                    <Text size="sm">Xu hướng gần đây:</Text>
+                    <Badge 
+                      color={procrastinationInsights.trend === 'improving' ? 'green' : 
+                             procrastinationInsights.trend === 'worsening' ? 'red' : 'blue'}
+                    >
+                      {procrastinationInsights.trend === 'improving' ? '📈 Đang tiến bộ' :
+                       procrastinationInsights.trend === 'worsening' ? '📉 Cần chú ý' : '➡️ Ổn định'}
+                    </Badge>
+                  </Group>
+                  
+                  <Group gap="lg">
+                    <div>
+                      <Text size="xs" c="dimmed">Trung bình chậm deadline</Text>
+                      <Text fw={500}>{procrastinationInsights.averageDelay.toFixed(1)}%</Text>
+                    </div>
+                    <div>
+                      <Text size="xs" c="dimmed">Loại task khó nhất</Text>
+                      <Text fw={500}>{procrastinationInsights.worstTaskType}</Text>
+                    </div>
+                    <div>
+                      <Text size="xs" c="dimmed">Loại task dễ nhất</Text>
+                      <Text fw={500}>{procrastinationInsights.bestTaskType}</Text>
+                    </div>
+                  </Group>
+                  
+                  <div>
+                    <Text size="sm" fw={500} mb="xs">💡 Gợi ý cải thiện:</Text>
+                    <Stack gap="xs">
+                      {procrastinationInsights.recommendations.map((rec, index) => (
+                        <Alert key={index} color="blue" variant="light" size="sm">
+                          {rec}
+                        </Alert>
+                      ))}
+                    </Stack>
+                  </div>
+                </Stack>
+              </Card>
             )}
             
             {analytics.bestWorkingHours.includes(9) && (

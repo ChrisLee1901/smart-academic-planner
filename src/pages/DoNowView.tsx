@@ -246,6 +246,14 @@ export function DoNowView() {
                             {getTimeDisplay(task.timeToDeadline)}
                           </Text>
                         </Group>
+                        {task.realisticDeadline && (
+                          <Group gap="xs">
+                            <Text size="xs" c="dimmed">AI deadline:</Text>
+                            <Text size="sm" c="orange" fw={500}>
+                              {dayjs(task.realisticDeadline).format('DD/MM HH:mm')}
+                            </Text>
+                          </Group>
+                        )}
                         <Text size="sm" c="dimmed">
                           Effort: {task.estimatedEffort}h
                         </Text>
