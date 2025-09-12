@@ -53,16 +53,16 @@ interface HabitRecord {
 }
 
 const HABIT_ICONS = [
-  { value: '📚', label: '📚 Đọc sách' },
-  { value: '💪', label: '💪 Tập thể dục' },
-  { value: '🧘', label: '🧘 Thiền' },
-  { value: '💧', label: '💧 Uống nước' },
-  { value: '🍎', label: '🍎 Ăn healthy' },
-  { value: '😴', label: '😴 Ngủ đủ giấc' },
-  { value: '🚶', label: '🚶 Đi bộ' },
-  { value: '✍️', label: '✍️ Viết nhật ký' },
-  { value: '🎯', label: '🎯 Mục tiêu' },
-  { value: '🌅', label: '🌅 Dậy sớm' }
+  { value: '📚', label: 'Đọc sách' },
+  { value: '💪', label: 'Tập thể dục' },
+  { value: '🧘', label: 'Thiền' },
+  { value: '💧', label: 'Uống nước' },
+  { value: '🍎', label: 'Ăn healthy' },
+  { value: '😴', label: 'Ngủ đủ giấc' },
+  { value: '🚶', label: 'Đi bộ' },
+  { value: '✍️', label: 'Viết nhật ký' },
+  { value: '🎯', label: 'Mục tiêu' },
+  { value: '🌅', label: 'Dậy sớm' }
 ];
 
 const HABIT_COLORS = [
@@ -276,7 +276,7 @@ export function HabitTracker() {
         <Group justify="space-between">
           <Group>
             <IconFlame size={24} color="#fa5252" />
-            <Title order={3}>🔥 Theo dõi Thói quen</Title>
+            <Title order={3}>Theo dõi Thói quen</Title>
           </Group>
           
           <Button

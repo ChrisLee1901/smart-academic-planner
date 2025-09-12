@@ -222,7 +222,7 @@ export function GoalTracker() {
       
       if (isCompleted && goal.status !== 'completed') {
         notifications.show({
-          title: '🎉 Chúc mừng!',
+          title: 'Chúc mừng!',
           message: `Bạn đã hoàn thành mục tiêu "${goal.title}"!`,
           color: 'green',
           autoClose: 8000
@@ -275,7 +275,7 @@ export function GoalTracker() {
         <Group justify="space-between">
           <Group>
             <IconTrophy size={24} color="#ffd43b" />
-            <Title order={3}>🎯 Mục tiêu & Thành tựu</Title>
+            <Title order={3}>Mục tiêu & Thành tựu</Title>
           </Group>
           
           <Button

@@ -151,7 +151,7 @@ export function WeekView({ selectedDate, events, onEventClick, onTimeSlotClick }
                               </Group>
                               {event.course && (
                                 <Text size="xs" c="dimmed" lineClamp={1}>
-                                  📚 {event.course}
+                                  {event.course}
                                 </Text>
                               )}
                             </Stack>

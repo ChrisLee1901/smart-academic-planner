@@ -214,7 +214,7 @@ export function AIStudyAssistant() {
         <Group justify="space-between">
           <Group>
             <IconRobot size={24} color="#228be6" />
-            <Title order={3}>🤖 AI Study Assistant</Title>
+            <Title order={3}>AI Study Assistant</Title>
           </Group>
           
           <Button
@@ -252,10 +252,10 @@ export function AIStudyAssistant() {
             
             <Text size="sm" c="dimmed" ta="center">
               {insights.completionRate >= 80 
-                ? '🎉 Tuyệt vời! Bạn đang rất productive!'
+                ? 'Tuyệt vời! Bạn đang rất productive!'
                 : insights.completionRate >= 60
                 ? '👍 Tốt lắm! Cố gắng thêm một chút nữa!'
-                : '💪 Hãy bắt đầu với một nhiệm vụ nhỏ!'
+                : 'Hãy bắt đầu với một nhiệm vụ nhỏ!'
               }
             </Text>
           </Stack>
@@ -266,7 +266,7 @@ export function AIStudyAssistant() {
           <Stack gap="md">
             <Group>
               <IconBulb size={20} color="#ffd43b" />
-              <Text fw={500}>💡 Gợi ý học tập</Text>
+              <Text fw={500}>Gợi ý học tập</Text>
             </Group>
             
             {selectedTips.map(tip => (
@@ -289,7 +289,7 @@ export function AIStudyAssistant() {
         <Modal
           opened={isAIOpen}
           onClose={() => setIsAIOpen(false)}
-          title="🤖 AI Study Assistant"
+          title="AI Study Assistant"
           size="lg"
         >
           <Stack gap="md" h={400}>

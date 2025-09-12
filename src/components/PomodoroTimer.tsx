@@ -246,7 +246,7 @@ export function PomodoroTimer() {
       switchMode(nextMode);
       
       notifications.show({
-        title: '🎉 Phiên tập trung hoàn thành!',
+        title: 'Phiên tập trung hoàn thành!',
         message: shouldTakeLongBreak 
           ? 'Bạn đã hoàn thành một chu kỳ! Hãy nghỉ dài một chút.' 
           : 'Tuyệt vời! Hãy nghỉ ngắn và tiếp tục.',
@@ -256,7 +256,7 @@ export function PomodoroTimer() {
     } else {
       switchMode('focus');
       notifications.show({
-        title: '⏰ Giờ nghỉ kết thúc!',
+        title: 'Giờ nghỉ kết thúc!',
         message: 'Đã đến lúc bắt đầu phiên tập trung tiếp theo.',
         color: 'blue',
         autoClose: 5000
@@ -317,7 +317,7 @@ export function PomodoroTimer() {
         <Group justify="space-between">
           <Group>
             <IconClock size={24} color="#fa5252" />
-            <Title order={3}>🍅 Pomodoro Timer</Title>
+            <Title order={3}>Pomodoro Timer</Title>
           </Group>
           
           <Badge color={modeInfo.color} leftSection={<Icon size={14} />}>

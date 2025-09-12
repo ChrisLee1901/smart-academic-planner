@@ -115,23 +115,23 @@ export function StudyScheduleGenerator() {
         
         if (urgentDeadlines.length > 0) {
           priority = 'high';
-          recommendations.push(`⚠️ Có ${urgentDeadlines.length} deadline gấp trong 2 ngày tới!`);
+          recommendations.push(`Có ${urgentDeadlines.length} deadline gấp trong 2 ngày tới!`);
         }
         
         // Weekend recommendations
         if (date.day() === 0 || date.day() === 6) {
-          recommendations.push('📚 Cuối tuần - thời gian tốt để học sâu và làm project lớn.');
+          recommendations.push('Cuối tuần - thời gian tốt để học sâu và làm project lớn.');
           if (availableStudyTime < 2) {
-            recommendations.push('💡 Hãy dành thêm thời gian học vào cuối tuần.');
+            recommendations.push('Hãy dành thêm thời gian học vào cuối tuần.');
           }
         }
         
         // Productivity tips
         if (date.day() === 1) {
-          recommendations.push('🌟 Đầu tuần - năng lượng cao, phù hợp với môn khó.');
+          recommendations.push('Đầu tuần - năng lượng cao, phù hợp với môn khó.');
         }
         if (date.day() === 5) {
-          recommendations.push('📝 Cuối tuần - thời gian tốt để ôn tập và chuẩn bị cho tuần sau.');
+          recommendations.push('Cuối tuần - thời gian tốt để ôn tập và chuẩn bị cho tuần sau.');
         }
         
         newSchedule.push({
@@ -178,7 +178,7 @@ export function StudyScheduleGenerator() {
         <Group justify="space-between">
           <Group>
             <IconBook size={24} color="#228be6" />
-            <Title order={3}>📚 Lịch học thông minh</Title>
+            <Title order={3}>Lịch học thông minh</Title>
           </Group>
           
           <Group gap="xs">

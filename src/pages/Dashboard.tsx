@@ -165,58 +165,193 @@ export function Dashboard({ onTabChange }: DashboardProps) {
 
         {/* Statistics Cards */}
         <SimpleGrid cols={{ base: 2, sm: 4 }} spacing="lg">
-          <Card withBorder padding="lg" radius="md">
+          <Card 
+            withBorder 
+            padding="lg" 
+            radius="md"
+            className="event-card-animated"
+            style={{
+              background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(240, 248, 255, 0.7) 100%)',
+              backdropFilter: 'blur(10px)',
+              borderColor: 'rgba(102, 126, 234, 0.2)',
+              transition: 'all 0.3s ease',
+              cursor: 'pointer'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = 'translateY(-4px)';
+              e.currentTarget.style.boxShadow = '0 12px 25px rgba(102, 126, 234, 0.15)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = 'translateY(0)';
+              e.currentTarget.style.boxShadow = 'none';
+            }}
+          >
             <Group justify="apart" mb="xs">
               <Text size="sm" c="dimmed" fw={500}>Tổng sự kiện</Text>
               <ThemeIcon variant="light" color="blue" size="sm">
                 <IconCalendarEvent size={16} />
               </ThemeIcon>
             </Group>
-            <Text fw={700} size="xl">{totalEvents}</Text>
+            <Text fw={700} size="xl" style={{ color: '#667eea' }}>{totalEvents}</Text>
           </Card>
 
-          <Card withBorder padding="lg" radius="md">
+          <Card 
+            withBorder 
+            padding="lg" 
+            radius="md"
+            className="event-card-animated"
+            style={{
+              background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(240, 255, 248, 0.7) 100%)',
+              backdropFilter: 'blur(10px)',
+              borderColor: 'rgba(102, 187, 106, 0.2)',
+              transition: 'all 0.3s ease',
+              cursor: 'pointer'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = 'translateY(-4px)';
+              e.currentTarget.style.boxShadow = '0 12px 25px rgba(102, 187, 106, 0.15)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = 'translateY(0)';
+              e.currentTarget.style.boxShadow = 'none';
+            }}
+          >
             <Group justify="apart" mb="xs">
               <Text size="sm" c="dimmed" fw={500}>Đã hoàn thành</Text>
               <ThemeIcon variant="light" color="green" size="sm">
                 <IconCheck size={16} />
               </ThemeIcon>
             </Group>
-            <Text fw={700} size="xl">{completedEvents}</Text>
+            <Text fw={700} size="xl" style={{ color: '#66bb6a' }}>{completedEvents}</Text>
           </Card>
 
-          <Card withBorder padding="lg" radius="md">
+          <Card 
+            withBorder 
+            padding="lg" 
+            radius="md"
+            className="event-card-animated"
+            style={{
+              background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(255, 248, 240, 0.7) 100%)',
+              backdropFilter: 'blur(10px)',
+              borderColor: 'rgba(66, 165, 245, 0.2)',
+              transition: 'all 0.3s ease',
+              cursor: 'pointer'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = 'translateY(-4px)';
+              e.currentTarget.style.boxShadow = '0 12px 25px rgba(66, 165, 245, 0.15)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = 'translateY(0)';
+              e.currentTarget.style.boxShadow = 'none';
+            }}
+          >
             <Group justify="apart" mb="xs">
               <Text size="sm" c="dimmed" fw={500}>Sắp tới</Text>
-              <ThemeIcon variant="light" color="yellow" size="sm">
+              <ThemeIcon variant="light" color="blue" size="sm">
                 <IconClock size={16} />
               </ThemeIcon>
             </Group>
-            <Text fw={700} size="xl">{upcomingEvents}</Text>
+            <Text fw={700} size="xl" style={{ color: '#42a5f5' }}>{upcomingEvents}</Text>
           </Card>
 
-          <Card withBorder padding="lg" radius="md">
+          <Card 
+            withBorder 
+            padding="lg" 
+            radius="md"
+            className="event-card-animated"
+            style={{
+              background: overdueEvents > 0 
+                ? 'linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(255, 245, 245, 0.7) 100%)'
+                : 'linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(248, 248, 248, 0.7) 100%)',
+              backdropFilter: 'blur(10px)',
+              borderColor: overdueEvents > 0 ? 'rgba(255, 107, 107, 0.3)' : 'rgba(120, 144, 156, 0.2)',
+              transition: 'all 0.3s ease',
+              cursor: 'pointer',
+              animation: overdueEvents > 0 ? 'urgentPulse 4s infinite' : 'none'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = 'translateY(-4px)';
+              e.currentTarget.style.boxShadow = overdueEvents > 0 
+                ? '0 12px 25px rgba(255, 107, 107, 0.2)'
+                : '0 12px 25px rgba(0, 0, 0, 0.1)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = 'translateY(0)';
+              e.currentTarget.style.boxShadow = 'none';
+            }}
+          >
             <Group justify="apart" mb="xs">
               <Text size="sm" c="dimmed" fw={500}>Quá hạn</Text>
-              <ThemeIcon variant="light" color="red" size="sm">
+              <ThemeIcon 
+                variant="light" 
+                color="red" 
+                size="sm"
+                style={{
+                  animation: overdueEvents > 0 ? 'urgentPulse 3s infinite' : 'none'
+                }}
+              >
                 <IconAlertTriangle size={16} />
               </ThemeIcon>
             </Group>
-            <Text fw={700} size="xl" c={overdueEvents > 0 ? 'red' : undefined}>
+            <Text 
+              fw={700} 
+              size="xl" 
+              style={{ 
+                color: overdueEvents > 0 ? '#ff6b6b' : '#78909c',
+                textShadow: overdueEvents > 0 ? '0 1px 3px rgba(255, 107, 107, 0.2)' : 'none'
+              }}
+            >
               {overdueEvents}
             </Text>
           </Card>
         </SimpleGrid>
 
         {/* Completion Rate */}
-        <Paper withBorder p="md" radius="md">
+        <Paper 
+          withBorder 
+          p="md" 
+          radius="md"
+          className="event-card-animated"
+          style={{
+            background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(248, 250, 252, 0.7) 100%)',
+            backdropFilter: 'blur(10px)',
+            borderColor: completionRate >= 80 ? 'rgba(102, 187, 106, 0.3)' : completionRate >= 60 ? 'rgba(66, 165, 245, 0.3)' : 'rgba(255, 107, 107, 0.3)',
+            transition: 'all 0.3s ease'
+          }}
+        >
           <Group justify="space-between" mb="xs">
-            <Text fw={500}>Tỷ lệ hoàn thành</Text>
-            <Badge color={completionRate >= 80 ? 'green' : completionRate >= 60 ? 'yellow' : 'red'}>
+            <Text fw={500} style={{
+              color: '#2c3e50'
+            }}>
+              Tỷ lệ hoàn thành
+            </Text>
+            <Badge 
+              color={completionRate >= 80 ? 'green' : completionRate >= 60 ? 'blue' : 'red'}
+              variant="light"
+              style={{
+                animation: 'bounceIn 1s ease-out',
+                boxShadow: `0 2px 8px ${completionRate >= 80 ? 'rgba(102, 187, 106, 0.2)' : completionRate >= 60 ? 'rgba(66, 165, 245, 0.2)' : 'rgba(255, 107, 107, 0.2)'}`
+              }}
+            >
               {completionRate}%
             </Badge>
           </Group>
-          <Progress value={completionRate} color={completionRate >= 80 ? 'green' : completionRate >= 60 ? 'yellow' : 'red'} />
+          <Progress 
+            value={completionRate} 
+            color={completionRate >= 80 ? 'green' : completionRate >= 60 ? 'blue' : 'red'} 
+            size="md"
+            radius="xl"
+            className="progress-bar-animated"
+            style={{
+              '--progress-width': `${completionRate}%`
+            } as React.CSSProperties}
+          />
+          <Group justify="center" mt="xs">
+            <Text size="xs" c="dimmed">
+              {completionRate >= 80 ? '🎉 Xuất sắc!' : completionRate >= 60 ? '👍 Tốt lắm!' : '💪 Cố gắng lên!'}
+            </Text>
+          </Group>
         </Paper>
 
         {/* Kanban Board */}
@@ -293,29 +428,110 @@ export function Dashboard({ onTabChange }: DashboardProps) {
         <Grid>
           {/* Upcoming This Week */}
           <Grid.Col span={{ base: 12, md: 8 }}>
-            <Paper withBorder p="md" radius="md" h="100%">
+            <Paper 
+              withBorder 
+              p="md" 
+              radius="md" 
+              h="100%"
+              style={{
+                background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 250, 252, 0.8) 100%)',
+                backdropFilter: 'blur(10px)',
+                border: '1px solid rgba(114, 137, 218, 0.15)',
+                boxShadow: '0 4px 16px rgba(0, 0, 0, 0.05)',
+                position: 'relative',
+                overflow: 'hidden'
+              }}
+              className="event-card-animated"
+            >
+              {/* Animated gradient border */}
+              <div
+                style={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  height: '2px',
+                  background: 'linear-gradient(90deg, rgba(114, 137, 218, 0.6), rgba(102, 126, 234, 0.6), rgba(159, 122, 234, 0.6))',
+                  backgroundSize: '400% 400%',
+                  animation: 'shimmer 4s ease infinite',
+                }}
+              />
+              
               <Group mb="md">
-                <ThemeIcon variant="light" color="blue">
+                <ThemeIcon 
+                  variant="light" 
+                  color="blue"
+                  style={{
+                    animation: 'bounceIn 1s ease-out',
+                    boxShadow: '0 2px 8px rgba(114, 137, 218, 0.2)'
+                  }}
+                >
                   <IconClock size={20} />
                 </ThemeIcon>
-                <Title order={3}>Sự kiện sắp tới (7 ngày)</Title>
+                <Title order={3} style={{ 
+                  color: '#2c3e50',
+                  fontWeight: 600
+                }}>
+                  Sự kiện sắp tới (7 ngày)
+                </Title>
+                {upcomingThisWeek.length > 0 && (
+                  <Badge 
+                    color="blue" 
+                    variant="light"
+                    style={{
+                      animation: 'slideInRight 0.8s ease-out',
+                      boxShadow: '0 1px 4px rgba(114, 137, 218, 0.2)',
+                      backgroundColor: 'rgba(114, 137, 218, 0.1)',
+                      color: '#2c3e50'
+                    }}
+                  >
+                    {upcomingThisWeek.length} sự kiện
+                  </Badge>
+                )}
               </Group>
               
               <Stack gap="md">
                 {upcomingThisWeek.length > 0 ? (
-                  upcomingThisWeek.map(event => (
-                    <EventCard
+                  upcomingThisWeek.map((event, index) => (
+                    <div
                       key={event.id}
-                      event={event}
-                      onEdit={handleEditEvent}
-                      onDelete={handleDeleteEvent}
-                      onStatusChange={handleStatusChange}
-                    />
+                      style={{
+                        animation: `fadeInUp 0.6s ease-out ${index * 0.1}s both`,
+                      }}
+                    >
+                      <EventCard
+                        event={event}
+                        onEdit={handleEditEvent}
+                        onDelete={handleDeleteEvent}
+                        onStatusChange={handleStatusChange}
+                      />
+                    </div>
                   ))
                 ) : (
-                  <Text c="dimmed" ta="center" py="xl">
-                    🎉 Không có sự kiện nào sắp tới trong 7 ngày!
-                  </Text>
+                  <div
+                    style={{
+                      textAlign: 'center',
+                      padding: '3rem 1rem',
+                      background: 'linear-gradient(135deg, rgba(114, 137, 218, 0.05) 0%, rgba(102, 126, 234, 0.05) 100%)',
+                      borderRadius: '12px',
+                      border: '2px dashed rgba(114, 137, 218, 0.2)',
+                      animation: 'bounceIn 1s ease-out'
+                    }}
+                  >
+                    <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>🎉</div>
+                    <Text 
+                      fw={600} 
+                      size="lg"
+                      style={{
+                        color: '#2c3e50'
+                      }}
+                    >
+                      Không có sự kiện nào sắp tới trong 7 ngày!
+                    </Text>
+                    <Text c="dimmed" size="sm" mt="xs">
+                      Bạn có thể thư giãn hoặc lên kế hoạch cho tuần tới
+                    </Text>
+                  </div>
                 )}
               </Stack>
             </Paper>

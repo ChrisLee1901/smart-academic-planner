@@ -32,11 +32,11 @@ export function CRUDCompletionStatus() {
       operation: 'CREATE',
       description: 'Tạo nhiệm vụ mới',
       methods: [
-        '✅ Nút "Tạo nhiệm vụ mới" trên header Dashboard',
-        '✅ Nút "Thêm" trong mỗi cột Kanban',
-        '✅ Floating Action Button (FAB) luôn hiện diện',
-        '✅ Quick Add Task trong từng cột',
-        '✅ Form chi tiết với validation đầy đủ'
+        'Nút "Tạo nhiệm vụ mới" trên header Dashboard',
+        'Nút "Thêm" trong mỗi cột Kanban',
+        'Floating Action Button (FAB) luôn hiện diện',
+        'Quick Add Task trong từng cột',
+        'Form chi tiết với validation đầy đủ'
       ],
       color: 'green',
       icon: IconPlus
@@ -45,11 +45,11 @@ export function CRUDCompletionStatus() {
       operation: 'READ',
       description: 'Đọc và hiển thị dữ liệu',
       methods: [
-        '✅ Hiển thị danh sách nhiệm vụ theo trạng thái',
-        '✅ Dashboard với thống kê tổng quan',
-        '✅ Card chi tiết cho từng nhiệm vụ',
-        '✅ Filter và sort theo các tiêu chí',
-        '✅ Calendar view và Analytics view'
+        'Hiển thị danh sách nhiệm vụ theo trạng thái',
+        'Dashboard với thống kê tổng quan',
+        'Card chi tiết cho từng nhiệm vụ',
+        'Filter và sort theo các tiêu chí',
+        'Calendar view và Analytics view'
       ],
       color: 'blue',
       icon: IconEye
@@ -58,11 +58,11 @@ export function CRUDCompletionStatus() {
       operation: 'UPDATE',
       description: 'Cập nhật nhiệm vụ',
       methods: [
-        '✅ Edit từ menu dropdown trong TaskCard',
-        '✅ Drag & drop giữa các cột trạng thái',
-        '✅ Quick status change từ menu',
-        '✅ Form edit với pre-filled data',
-        '✅ Real-time update UI'
+        'Edit từ menu dropdown trong TaskCard',
+        'Drag & drop giữa các cột trạng thái',
+        'Quick status change từ menu',
+        'Form edit với pre-filled data',
+        'Real-time update UI'
       ],
       color: 'yellow',
       icon: IconEdit
@@ -71,11 +71,11 @@ export function CRUDCompletionStatus() {
       operation: 'DELETE',
       description: 'Xóa nhiệm vụ',
       methods: [
-        '✅ Nút Delete trong menu dropdown',
-        '✅ Confirmation trước khi xóa',
-        '✅ Soft delete với undo option',
-        '✅ Bulk delete (select multiple)',
-        '✅ Auto cleanup completed tasks'
+        'Nút Delete trong menu dropdown',
+        'Confirmation trước khi xóa',
+        'Soft delete với undo option',
+        'Bulk delete (select multiple)',
+        'Auto cleanup completed tasks'
       ],
       color: 'red',
       icon: IconTrash
@@ -98,7 +98,7 @@ export function CRUDCompletionStatus() {
             </ThemeIcon>
             <div>
               <Title order={3} c="green.7">
-                ✅ CRUD OPERATIONS - HOÀN THIỆN 100%
+                CRUD OPERATIONS - HOÀN THIỆN 100%
               </Title>
               <Text size="sm" c="dimmed">
                 Đáp ứng đầy đủ yêu cầu số 1 của hackathon
@@ -108,7 +108,7 @@ export function CRUDCompletionStatus() {
           
           <Group gap="xs">
             <Badge size="lg" color="green" variant="filled">
-              {completedFeatures}/20 ✅
+              {completedFeatures}/20
             </Badge>
             <Tooltip label={isExpanded ? "Thu gọn" : "Xem chi tiết"}>
               <ActionIcon
@@ -214,7 +214,7 @@ export function CRUDCompletionStatus() {
         <Paper p="sm" radius="sm" bg="green.1">
           <Group justify="center">
             <Text size="sm" fw={500} c="green.7">
-              🎯 Yêu cầu "Full CRUD operations" đã hoàn thành 100%
+              Yêu cầu "Full CRUD operations" đã hoàn thành 100%
             </Text>
           </Group>
         </Paper>

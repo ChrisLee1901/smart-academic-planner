@@ -204,7 +204,7 @@ export function ProductivityAnalytics() {
         <Group justify="space-between">
           <Group>
             <IconChartBar size={24} color="#228be6" />
-            <Title order={3}>📊 Phân tích Năng suất</Title>
+            <Title order={3}>Phân tích Năng suất</Title>
           </Group>
           
           <Select
@@ -439,7 +439,7 @@ export function ProductivityAnalytics() {
         {/* Insights */}
         <Card withBorder p="md" radius="md">
           <Stack gap="md">
-            <Text fw={500}>💡 Thông tin hữu ích</Text>
+            <Text fw={500}>Thông tin hữu ích</Text>
             <Divider />
             <SimpleGrid cols={{ base: 1, md: 2 }} spacing="md">
               <Stack gap="xs">

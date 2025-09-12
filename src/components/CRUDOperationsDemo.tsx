@@ -59,7 +59,7 @@ export function CRUDOperationsDemo() {
             </ThemeIcon>
             <div>
               <Title order={4} c="violet.7">
-                🚀 CRUD Operations Demo
+                CRUD Operations Demo
               </Title>
               <Text size="sm" c="dimmed">
                 Chứng minh đầy đủ chức năng Create, Read, Update, Delete
@@ -68,7 +68,7 @@ export function CRUDOperationsDemo() {
           </Group>
           
           <Badge color="violet" variant="light" size="lg">
-            Full CRUD ✅
+            Full CRUD
           </Badge>
         </Group>
 
@@ -122,23 +122,23 @@ export function CRUDOperationsDemo() {
             <Text size="sm" fw={500}>Thống kê hiện tại:</Text>
             <Group gap="md">
               <Text size="xs">
-                📊 Tổng: <strong>{events.length}</strong>
+                Tổng: <strong>{events.length}</strong>
               </Text>
               <Text size="xs">
-                📝 Todo: <strong>{events.filter(e => e.status === 'todo').length}</strong>
+                Todo: <strong>{events.filter(e => e.status === 'todo').length}</strong>
               </Text>
               <Text size="xs">
-                ⚡ In Progress: <strong>{events.filter(e => e.status === 'in-progress').length}</strong>
+                In Progress: <strong>{events.filter(e => e.status === 'in-progress').length}</strong>
               </Text>
               <Text size="xs">
-                ✅ Done: <strong>{events.filter(e => e.status === 'done').length}</strong>
+                Done: <strong>{events.filter(e => e.status === 'done').length}</strong>
               </Text>
             </Group>
           </Group>
         </Paper>
 
         <Text size="xs" c="dimmed" ta="center">
-          💡 Sử dụng các nút trên để test các chức năng CRUD. Dữ liệu sẽ được lưu trong IndexedDB và đồng bộ real-time.
+          Sử dụng các nút trên để test các chức năng CRUD. Dữ liệu sẽ được lưu trong IndexedDB và đồng bộ real-time.
         </Text>
       </Stack>
     </Paper>

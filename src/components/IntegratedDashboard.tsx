@@ -99,7 +99,7 @@ export function IntegratedDashboard() {
         <Group justify="space-between">
           <Group>
             <IconChartLine size={24} color="#228be6" />
-            <Title order={3}>📊 Tổng quan Tích hợp</Title>
+            <Title order={3}>Tổng quan Tích hợp</Title>
           </Group>
           
           <Group gap="xs">
@@ -312,7 +312,7 @@ export function IntegratedDashboard() {
         {/* Tips for Better Integration */}
         <Alert icon={<IconTarget size={16} />} color="blue" variant="light">
           <Stack gap="xs">
-            <Text fw={500} size="sm">💡 Mẹo để tối đa hóa tích hợp:</Text>
+            <Text fw={500} size="sm">Mẹo để tối đa hóa tích hợp:</Text>
             <Text size="xs">
               • Luôn chọn nhiệm vụ cụ thể khi bắt đầu Pomodoro Timer
             </Text>

@@ -77,7 +77,7 @@ export function QuickAddTask({ status, onAdd, color }: QuickAddTaskProps) {
           }
         }}
       >
-        ➕ Thêm nhiệm vụ nhanh
+        Thêm nhiệm vụ nhanh
       </Button>
     );
   }

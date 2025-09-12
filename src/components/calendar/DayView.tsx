@@ -244,7 +244,7 @@ export function DayView({ selectedDate, events, onEventClick, onTimeSlotClick }:
                               {event.course && (
                                 <Group gap="xs">
                                   <Text size="sm" c="dimmed">
-                                    📚 Môn học:
+                                    Môn học:
                                   </Text>
                                   <Text size="sm" fw={500}>
                                     {event.course}

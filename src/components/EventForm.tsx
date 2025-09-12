@@ -204,7 +204,7 @@ export function EventForm({ event, onSubmit, onCancel, defaultStatus }: EventFor
             color={realisticInfo.urgencyLevel === 'high' ? 'red' : 
                    realisticInfo.urgencyLevel === 'medium' ? 'yellow' : 'blue'}
             variant="light"
-            title="🤖 AI Gợi ý Deadline Thực tế"
+            title="AI Gợi ý Deadline Thực tế"
           >
             <Stack gap="xs">
               <Group gap="xs">
@@ -221,8 +221,8 @@ export function EventForm({ event, onSubmit, onCancel, defaultStatus }: EventFor
                 {realisticInfo.urgencyLevel === 'high' 
                   ? '⚠️ Nên bắt đầu ngay để tránh trễ deadline'
                   : realisticInfo.urgencyLevel === 'medium'
-                  ? '⏰ Nên bắt đầu trong vài giờ tới'
-                  : '✅ Còn thời gian, nhưng nên lập kế hoạch sớm'
+                  ? 'Nên bắt đầu trong vài giờ tới'
+                  : 'Còn thời gian, nhưng nên lập kế hoạch sớm'
                 }
                 <br />
                 <span style={{ fontSize: '10px', opacity: 0.7 }}>
