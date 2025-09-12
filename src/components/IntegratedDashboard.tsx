@@ -15,7 +15,14 @@ import {
   ActionIcon,
   Tooltip,
   Progress,
-  SimpleGrid
+  SimpleGrid,
+  Modal,
+  NumberInput,
+  Button,
+  Divider,
+  Checkbox,
+  Slider,
+  Box
 } from '@mantine/core';
 import {
   IconBrain,
@@ -26,7 +33,9 @@ import {
   IconInfoCircle,
   IconCheck,
   IconClock,
-  IconTrophy
+  IconTrophy,
+  IconDeviceFloppy,
+  IconRefresh
 } from '@tabler/icons-react';
 import { integrationService, type IntegratedStats } from '../services/integrationService';
 
@@ -39,12 +48,35 @@ export function IntegratedDashboard() {
     productivityScore: 0
   });
   const [integrationEnabled, setIntegrationEnabled] = useState(true);
+  const [settingsModalOpen, setSettingsModalOpen] = useState(false);
+  
+  // Settings state
+  const [settings, setSettings] = useState({
+    dailyFocusGoal: 120, // minutes
+    dailyTaskGoal: 5,
+    dailyHabitGoal: 3,
+    enablePomodoroIntegration: true,
+    enableTaskGoalIntegration: true,
+    enableHabitIntegration: true,
+    enableNotifications: true,
+    productivityThreshold: 80
+  });
 
   useEffect(() => {
     const updateStats = () => {
       setStats(integrationService.getIntegratedStats());
       setIntegrationEnabled(integrationService.isIntegrationEnabled());
     };
+
+    // Load settings from localStorage
+    const savedSettings = localStorage.getItem('integrationSettings');
+    if (savedSettings) {
+      try {
+        setSettings(JSON.parse(savedSettings));
+      } catch (error) {
+        console.error('Failed to load integration settings:', error);
+      }
+    }
 
     updateStats();
 
@@ -69,11 +101,23 @@ export function IntegratedDashboard() {
     integrationService.setIntegrationEnabled(enabled);
   };
 
-  const getProductivityColor = (score: number) => {
-    if (score >= 80) return 'green';
-    if (score >= 60) return 'yellow';
-    if (score >= 40) return 'orange';
-    return 'red';
+  const handleSettingsSave = () => {
+    // Save settings to localStorage
+    localStorage.setItem('integrationSettings', JSON.stringify(settings));
+    setSettingsModalOpen(false);
+  };
+
+  const handleSettingsReset = () => {
+    setSettings({
+      dailyFocusGoal: 120,
+      dailyTaskGoal: 5,
+      dailyHabitGoal: 3,
+      enablePomodoroIntegration: true,
+      enableTaskGoalIntegration: true,
+      enableHabitIntegration: true,
+      enableNotifications: true,
+      productivityThreshold: 80
+    });
   };
 
   const getProductivityLabel = (score: number) => {
@@ -104,7 +148,11 @@ export function IntegratedDashboard() {
           
           <Group gap="xs">
             <Tooltip label="Cài đặt tích hợp">
-              <ActionIcon variant="light" size="sm">
+              <ActionIcon 
+                variant="light" 
+                size="sm"
+                onClick={() => setSettingsModalOpen(true)}
+              >
                 <IconSettings size={16} />
               </ActionIcon>
             </Tooltip>
@@ -171,13 +219,13 @@ export function IntegratedDashboard() {
                 {formatFocusTime(stats.todayFocusTime)}
               </Text>
               <Progress
-                value={Math.min((stats.todayFocusTime / 120) * 100, 100)}
+                value={Math.min((stats.todayFocusTime / settings.dailyFocusGoal) * 100, 100)}
                 color="red"
                 size="sm"
                 w="100%"
               />
               <Text size="xs" c="dimmed" ta="center">
-                Mục tiêu: 2h
+                Mục tiêu: {Math.floor(settings.dailyFocusGoal / 60)}h{settings.dailyFocusGoal % 60 > 0 ? ` ${settings.dailyFocusGoal % 60}m` : ''}
               </Text>
             </Stack>
           </Card>
@@ -193,13 +241,13 @@ export function IntegratedDashboard() {
                 {stats.todayTasksCompleted}
               </Text>
               <Progress
-                value={Math.min((stats.todayTasksCompleted / 5) * 100, 100)}
+                value={Math.min((stats.todayTasksCompleted / settings.dailyTaskGoal) * 100, 100)}
                 color="green"
                 size="sm"
                 w="100%"
               />
               <Text size="xs" c="dimmed" ta="center">
-                Mục tiêu: 5 nhiệm vụ
+                Mục tiêu: {settings.dailyTaskGoal} nhiệm vụ
               </Text>
             </Stack>
           </Card>
@@ -215,13 +263,13 @@ export function IntegratedDashboard() {
                 {stats.todayHabitsCompleted}
               </Text>
               <Progress
-                value={Math.min((stats.todayHabitsCompleted / 3) * 100, 100)}
+                value={Math.min((stats.todayHabitsCompleted / settings.dailyHabitGoal) * 100, 100)}
                 color="orange"
                 size="sm"
                 w="100%"
               />
               <Text size="xs" c="dimmed" ta="center">
-                Mục tiêu: 3 thói quen
+                Mục tiêu: {settings.dailyHabitGoal} thói quen
               </Text>
             </Stack>
           </Card>
@@ -327,6 +375,186 @@ export function IntegratedDashboard() {
             </Text>
           </Stack>
         </Alert>
+
+        {/* Settings Modal */}
+        <Modal
+          opened={settingsModalOpen}
+          onClose={() => setSettingsModalOpen(false)}
+          title={
+            <Group>
+              <IconSettings size={20} />
+              <Text fw={600}>Cài đặt Tích hợp</Text>
+            </Group>
+          }
+          size="lg"
+          centered
+          styles={{
+            content: {
+              maxHeight: '90vh',
+              overflow: 'auto'
+            }
+          }}
+        >
+          <Stack gap="xl" p="xs">
+            {/* Daily Goals */}
+            <Stack gap="md">
+              <Group>
+                <IconTarget size={18} color="#228be6" />
+                <Text fw={500} size="sm">Mục tiêu hàng ngày</Text>
+              </Group>
+              
+              <NumberInput
+                label="Thời gian tập trung (phút)"
+                description="Mục tiêu thời gian tập trung mỗi ngày"
+                value={settings.dailyFocusGoal}
+                onChange={(value) => setSettings(prev => ({ ...prev, dailyFocusGoal: Number(value) || 120 }))}
+                min={30}
+                max={600}
+                step={15}
+                leftSection={<IconClock size={16} />}
+              />
+              
+              <NumberInput
+                label="Số nhiệm vụ hoàn thành"
+                description="Mục tiêu số nhiệm vụ hoàn thành mỗi ngày"
+                value={settings.dailyTaskGoal}
+                onChange={(value) => setSettings(prev => ({ ...prev, dailyTaskGoal: Number(value) || 5 }))}
+                min={1}
+                max={20}
+                leftSection={<IconCheck size={16} />}
+              />
+              
+              <NumberInput
+                label="Số thói quen thực hiện"
+                description="Mục tiêu số thói quen thực hiện mỗi ngày"
+                value={settings.dailyHabitGoal}
+                onChange={(value) => setSettings(prev => ({ ...prev, dailyHabitGoal: Number(value) || 3 }))}
+                min={1}
+                max={10}
+                leftSection={<IconFlame size={16} />}
+              />
+            </Stack>
+
+            <Divider />
+
+            {/* Integration Options */}
+            <Stack gap="md">
+              <Group>
+                <IconBrain size={18} color="#40c057" />
+                <Text fw={500} size="sm">Tùy chọn Tích hợp</Text>
+              </Group>
+              
+              <Checkbox
+                label="Tích hợp Pomodoro Timer"
+                description="Tự động liên kết timer với nhiệm vụ"
+                checked={settings.enablePomodoroIntegration}
+                onChange={(event) => setSettings(prev => ({ 
+                  ...prev, 
+                  enablePomodoroIntegration: event.currentTarget.checked 
+                }))}
+              />
+              
+              <Checkbox
+                label="Tích hợp Mục tiêu"
+                description="Cập nhật tiến độ mục tiêu khi hoàn thành nhiệm vụ"
+                checked={settings.enableTaskGoalIntegration}
+                onChange={(event) => setSettings(prev => ({ 
+                  ...prev, 
+                  enableTaskGoalIntegration: event.currentTarget.checked 
+                }))}
+              />
+              
+              <Checkbox
+                label="Tích hợp Thói quen"
+                description="Đánh dấu thói quen khi hoàn thành hoạt động"
+                checked={settings.enableHabitIntegration}
+                onChange={(event) => setSettings(prev => ({ 
+                  ...prev, 
+                  enableHabitIntegration: event.currentTarget.checked 
+                }))}
+              />
+              
+              <Checkbox
+                label="Thông báo"
+                description="Nhận thông báo về tiến độ và thành tích"
+                checked={settings.enableNotifications}
+                onChange={(event) => setSettings(prev => ({ 
+                  ...prev, 
+                  enableNotifications: event.currentTarget.checked 
+                }))}
+              />
+            </Stack>
+
+            <Divider />
+
+            {/* Productivity Settings */}
+            <Stack gap="md">
+              <Group>
+                <IconChartLine size={18} color="#fd7e14" />
+                <Text fw={500} size="sm">Chỉ số Năng suất</Text>
+              </Group>
+              
+              <Stack gap="sm">
+                <Group justify="space-between">
+                  <Text size="sm">Ngưỡng "Xuất sắc"</Text>
+                  <Badge color="blue" variant="light">
+                    {settings.productivityThreshold}%
+                  </Badge>
+                </Group>
+                
+                <Box pt="xs" pb="md">
+                  <Slider
+                    value={settings.productivityThreshold}
+                    onChange={(value) => setSettings(prev => ({ ...prev, productivityThreshold: value }))}
+                    min={50}
+                    max={100}
+                    step={5}
+                    marks={[
+                      { value: 50, label: '50%' },
+                      { value: 75, label: '75%' },
+                      { value: 100, label: '100%' }
+                    ]}
+                    size="md"
+                    color="blue"
+                  />
+                </Box>
+                
+                <Text size="xs" c="dimmed" ta="center">
+                  Điểm số cần đạt để được đánh giá "Xuất sắc"
+                </Text>
+              </Stack>
+            </Stack>
+
+            <Divider />
+
+            {/* Action Buttons */}
+            <Group justify="space-between">
+              <Button
+                variant="light"
+                color="gray"
+                leftSection={<IconRefresh size={16} />}
+                onClick={handleSettingsReset}
+              >
+                Đặt lại mặc định
+              </Button>
+              
+              <Group>
+                <Button
+                  variant="light"
+                  onClick={() => setSettingsModalOpen(false)}
+                >
+                  Hủy
+                </Button>
+                <Button
+                  leftSection={<IconDeviceFloppy size={16} />}
+                  onClick={handleSettingsSave}
+                >
+                  Lưu cài đặt
+                </Button>
+              </Group>
+            </Group>
+          </Stack>
+        </Modal>
       </Stack>
     </Paper>
   );
