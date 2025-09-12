@@ -12,10 +12,13 @@ import {
   ActionIcon,
   Select,
   Paper,
-  Modal
+  Modal,
+  SegmentedControl,
+  Box,
+  Flex
 } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
-import { IconPlus, IconEdit, IconTrash, IconClock } from '@tabler/icons-react';
+import { IconPlus, IconEdit, IconTrash, IconClock, IconChevronLeft, IconChevronRight, IconCalendarEvent } from '@tabler/icons-react';
 import { useEventStore } from '../store/eventStore';
 import { EventForm } from '../components/EventForm';
 import type { AcademicEvent } from '../types';
@@ -29,6 +32,51 @@ export function CalendarView() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingEvent, setEditingEvent] = useState<AcademicEvent | undefined>();
   const [modalTitle, setModalTitle] = useState('');
+  const [viewMode, setViewMode] = useState<'month' | 'week' | 'day'>('month');
+  const [currentDate, setCurrentDate] = useState<Date>(new Date());
+
+  // Navigation functions
+  const goToToday = () => {
+    const today = new Date();
+    setCurrentDate(today);
+    setSelectedDate(today);
+  };
+
+  const navigatePrevious = () => {
+    const newDate = new Date(currentDate);
+    if (viewMode === 'month') {
+      newDate.setMonth(newDate.getMonth() - 1);
+    } else if (viewMode === 'week') {
+      newDate.setDate(newDate.getDate() - 7);
+    } else {
+      newDate.setDate(newDate.getDate() - 1);
+    }
+    setCurrentDate(newDate);
+  };
+
+  const navigateNext = () => {
+    const newDate = new Date(currentDate);
+    if (viewMode === 'month') {
+      newDate.setMonth(newDate.getMonth() + 1);
+    } else if (viewMode === 'week') {
+      newDate.setDate(newDate.getDate() + 7);
+    } else {
+      newDate.setDate(newDate.getDate() + 1);
+    }
+    setCurrentDate(newDate);
+  };
+
+  const getDateRangeText = () => {
+    if (viewMode === 'month') {
+      return dayjs(currentDate).format('MMMM YYYY');
+    } else if (viewMode === 'week') {
+      const startOfWeek = dayjs(currentDate).startOf('week');
+      const endOfWeek = dayjs(currentDate).endOf('week');
+      return `${startOfWeek.format('DD MMM')} - ${endOfWeek.format('DD MMM YYYY')}`;
+    } else {
+      return dayjs(currentDate).format('DD MMMM YYYY');
+    }
+  };
 
   // Get events for selected date
   const selectedDateEvents = events.filter(event => {
@@ -132,34 +180,153 @@ export function CalendarView() {
 
   return (
     <div>
-      <Container size="xl" py="xl">
-        <Stack gap="xl">
-          {/* Header */}
-          <Group justify="space-between" align="center">
-            <div>
-              <Title order={1}>Lịch học tập</Title>
-              <Text c="dimmed" size="lg">
-                Xem sự kiện theo ngày
-              </Text>
-            </div>
-            <Button 
-              leftSection={<IconPlus size={16} />}
-              onClick={() => openCreateModal(selectedDate)}
-              size="md"
-            >
-              Thêm sự kiện
-            </Button>
-          </Group>
+      <Container size="xl" py="md">
+        <Stack gap="lg">
+          {/* Google Calendar Style Header */}
+          <Paper p="md" withBorder radius="md">
+            <Flex justify="space-between" align="center" wrap="wrap" gap="md">
+              {/* Left side - Logo and navigation */}
+              <Group gap="lg">
+                <Group gap="xs">
+                  <IconCalendarEvent size={24} color="var(--mantine-color-blue-6)" />
+                  <Title order={2} c="blue">Lịch học tập</Title>
+                </Group>
+                
+                {/* Navigation controls */}
+                <Group gap="xs">
+                  <Button 
+                    variant="subtle" 
+                    size="sm"
+                    onClick={goToToday}
+                  >
+                    Hôm nay
+                  </Button>
+                  
+                  <ActionIcon 
+                    variant="subtle" 
+                    size="lg"
+                    onClick={navigatePrevious}
+                  >
+                    <IconChevronLeft size={18} />
+                  </ActionIcon>
+                  
+                  <ActionIcon 
+                    variant="subtle" 
+                    size="lg"
+                    onClick={navigateNext}
+                  >
+                    <IconChevronRight size={18} />
+                  </ActionIcon>
+                  
+                  <Text size="lg" fw={500} style={{ minWidth: '200px' }}>
+                    {getDateRangeText()}
+                  </Text>
+                </Group>
+              </Group>
 
+              {/* Right side - View selector and add button */}
+              <Group gap="md">
+                <SegmentedControl
+                  value={viewMode}
+                  onChange={(value) => setViewMode(value as 'month' | 'week' | 'day')}
+                  data={[
+                    { label: 'Tháng', value: 'month' },
+                    { label: 'Tuần', value: 'week' },
+                    { label: 'Ngày', value: 'day' }
+                  ]}
+                  size="sm"
+                />
+                
+                <Button 
+                  leftSection={<IconPlus size={16} />}
+                  onClick={() => openCreateModal(selectedDate)}
+                  variant="filled"
+                >
+                  Tạo
+                </Button>
+              </Group>
+            </Flex>
+          </Paper>
+
+          {/* Main Layout with Sidebar */}
           <Grid>
-            {/* Calendar Controls */}
-            <Grid.Col span={{ base: 12, md: 8 }}>
-              <Card shadow="sm" padding="lg" radius="md" withBorder>
-                <Stack gap="md">
-                  <Group justify="space-between">
-                    <Title order={3}>Lịch</Title>
+            {/* Left Sidebar - Mini Calendar & Filters */}
+            <Grid.Col span={{ base: 12, md: 3 }}>
+              <Stack gap="md">
+                {/* Mini Calendar Navigation */}
+                <Card shadow="sm" padding="md" radius="md" withBorder>
+                  <Stack gap="sm">
+                    <Text fw={500} size="sm">Mini Lịch</Text>
+                    
+                    {/* Simple date picker replacement for mini calendar */}
+                    <Box>
+                      <input
+                        type="date"
+                        value={dayjs(selectedDate).format('YYYY-MM-DD')}
+                        onChange={(e) => {
+                          const newDate = new Date(e.target.value);
+                          setSelectedDate(newDate);
+                          setCurrentDate(newDate);
+                        }}
+                        style={{
+                          width: '100%',
+                          padding: '8px 12px',
+                          border: '1px solid var(--mantine-color-gray-4)',
+                          borderRadius: '6px',
+                          fontSize: '14px',
+                          backgroundColor: 'var(--mantine-color-gray-0)'
+                        }}
+                      />
+                    </Box>
+                    
+                    {/* Quick date buttons */}
+                    <Stack gap="xs">
+                      <Button 
+                        size="xs" 
+                        variant="light" 
+                        fullWidth
+                        onClick={() => {
+                          const today = new Date();
+                          setSelectedDate(today);
+                          setCurrentDate(today);
+                        }}
+                      >
+                        Hôm nay
+                      </Button>
+                      <Button 
+                        size="xs" 
+                        variant="light" 
+                        fullWidth
+                        onClick={() => {
+                          const tomorrow = dayjs().add(1, 'day').toDate();
+                          setSelectedDate(tomorrow);
+                          setCurrentDate(tomorrow);
+                        }}
+                      >
+                        Ngày mai
+                      </Button>
+                      <Button 
+                        size="xs" 
+                        variant="light" 
+                        fullWidth
+                        onClick={() => {
+                          const nextWeek = dayjs().add(7, 'day').toDate();
+                          setSelectedDate(nextWeek);
+                          setCurrentDate(nextWeek);
+                        }}
+                      >
+                        Tuần sau
+                      </Button>
+                    </Stack>
+                  </Stack>
+                </Card>
+
+                {/* Event Type Filter */}
+                <Card shadow="sm" padding="md" radius="md" withBorder>
+                  <Stack gap="sm">
+                    <Text fw={500} size="sm">Lọc sự kiện</Text>
                     <Select
-                      placeholder="Lọc theo loại"
+                      placeholder="Chọn loại sự kiện"
                       data={[
                         { value: 'all', label: 'Tất cả' },
                         { value: 'deadline', label: 'Deadline' },
@@ -169,53 +336,15 @@ export function CalendarView() {
                       ]}
                       value={filterType}
                       onChange={(value) => setFilterType(value || 'all')}
-                      style={{ width: 200 }}
                     />
-                  </Group>
+                  </Stack>
+                </Card>
 
-                  <div style={{ border: '1px solid var(--mantine-color-gray-3)', borderRadius: '8px', padding: '16px' }}>
-                    <Text size="lg" fw={500} mb="md">Chọn ngày: {dayjs(selectedDate).format('DD/MM/YYYY')}</Text>
-                    <Group gap="sm" mb="md">
-                      <Button 
-                        size="sm" 
-                        variant="light" 
-                        onClick={() => setSelectedDate(new Date())}
-                      >
-                        Hôm nay
-                      </Button>
-                      <Button 
-                        size="sm" 
-                        variant="light" 
-                        onClick={() => setSelectedDate(dayjs().add(1, 'day').toDate())}
-                      >
-                        Ngày mai
-                      </Button>
-                      <Button 
-                        size="sm" 
-                        variant="light" 
-                        onClick={() => setSelectedDate(dayjs().add(7, 'day').toDate())}
-                      >
-                        Tuần sau
-                      </Button>
-                    </Group>
-                    <input
-                      type="date"
-                      value={dayjs(selectedDate).format('YYYY-MM-DD')}
-                      onChange={(e) => setSelectedDate(new Date(e.target.value))}
-                      style={{
-                        width: '100%',
-                        padding: '8px',
-                        border: '1px solid var(--mantine-color-gray-4)',
-                        borderRadius: '4px',
-                        fontSize: '14px'
-                      }}
-                    />
-                  </div>
-
-                  {/* Legend */}
-                  <Paper p="sm" withBorder>
-                    <Text size="sm" fw={500} mb="xs">Chú thích:</Text>
-                    <Group gap="md">
+                {/* Legend */}
+                <Card shadow="sm" padding="md" radius="md" withBorder>
+                  <Stack gap="sm">
+                    <Text fw={500} size="sm">Chú thích</Text>
+                    <Stack gap="xs">
                       <Group gap="xs">
                         <div
                           style={{
@@ -225,7 +354,7 @@ export function CalendarView() {
                             backgroundColor: 'var(--mantine-color-red-6)'
                           }}
                         />
-                        <Text size="sm">Deadline</Text>
+                        <Text size="xs">Deadline</Text>
                       </Group>
                       <Group gap="xs">
                         <div
@@ -236,7 +365,7 @@ export function CalendarView() {
                             backgroundColor: 'var(--mantine-color-blue-6)'
                           }}
                         />
-                        <Text size="sm">Lớp học</Text>
+                        <Text size="xs">Lớp học</Text>
                       </Group>
                       <Group gap="xs">
                         <div
@@ -247,7 +376,7 @@ export function CalendarView() {
                             backgroundColor: 'var(--mantine-color-orange-6)'
                           }}
                         />
-                        <Text size="sm">Dự án</Text>
+                        <Text size="xs">Dự án</Text>
                       </Group>
                       <Group gap="xs">
                         <div
@@ -258,99 +387,137 @@ export function CalendarView() {
                             backgroundColor: 'var(--mantine-color-green-6)'
                           }}
                         />
-                        <Text size="sm">Cá nhân</Text>
+                        <Text size="xs">Cá nhân</Text>
                       </Group>
-                    </Group>
-                  </Paper>
-                </Stack>
-              </Card>
+                    </Stack>
+                  </Stack>
+                </Card>
+              </Stack>
             </Grid.Col>
 
-            {/* Selected Date Events */}
-            <Grid.Col span={{ base: 12, md: 4 }}>
-              <Card shadow="sm" padding="lg" radius="md" withBorder>
+            {/* Main Content Area */}
+            <Grid.Col span={{ base: 12, md: 9 }}>
+              <Card shadow="sm" padding="lg" radius="md" withBorder style={{ minHeight: '600px' }}>
                 <Stack gap="md">
-                  <Group justify="space-between">
+                  {/* Current View Header */}
+                  <Group justify="space-between" align="center">
                     <div>
                       <Title order={3}>
-                        {dayjs(selectedDate).format('DD/MM/YYYY')}
+                        {viewMode === 'day' ? dayjs(selectedDate).format('dddd, DD MMMM YYYY') :
+                         viewMode === 'week' ? `Tuần của ${dayjs(selectedDate).format('DD/MM/YYYY')}` :
+                         'Lịch tháng'}
                       </Title>
                       <Text size="sm" c="dimmed">
-                        {dayjs(selectedDate).format('dddd')}
+                        {selectedDateEvents.length} sự kiện
                       </Text>
                     </div>
-                    <Badge color="blue" variant="light">
-                      {selectedDateEvents.length} sự kiện
+                    <Badge color="blue" variant="light" size="lg">
+                      {viewMode === 'month' ? 'Xem tháng' : 
+                       viewMode === 'week' ? 'Xem tuần' : 'Xem ngày'}
                     </Badge>
                   </Group>
 
+                  {/* Events Display */}
                   {selectedDateEvents.length === 0 ? (
-                    <Text c="dimmed" ta="center" py="xl">
-                      Không có sự kiện nào
-                    </Text>
+                    <Paper 
+                      p="xl" 
+                      style={{ 
+                        border: '2px dashed var(--mantine-color-gray-3)', 
+                        textAlign: 'center',
+                        backgroundColor: 'var(--mantine-color-gray-0)'
+                      }}
+                    >
+                      <Stack align="center" gap="md">
+                        <IconCalendarEvent size={48} color="var(--mantine-color-gray-4)" />
+                        <Text c="dimmed" size="lg">
+                          Không có sự kiện nào trong {dayjs(selectedDate).format('DD/MM/YYYY')}
+                        </Text>
+                        <Button 
+                          leftSection={<IconPlus size={16} />}
+                          onClick={() => openCreateModal(selectedDate)}
+                          variant="light"
+                        >
+                          Tạo sự kiện đầu tiên
+                        </Button>
+                      </Stack>
+                    </Paper>
                   ) : (
                     <Stack gap="sm">
                       {selectedDateEvents.map((event) => (
-                        <Card key={event.id} padding="sm" withBorder>
-                          <Stack gap="xs">
-                            <Group justify="space-between" align="flex-start">
-                              <div style={{ flex: 1 }}>
-                                <Text fw={500} size="sm" lineClamp={2}>
+                        <Card key={event.id} padding="md" withBorder radius="md" 
+                              style={{ 
+                                borderLeft: `4px solid var(--mantine-color-${getEventTypeColor(event.type)}-6)`,
+                                transition: 'all 0.2s ease',
+                                '&:hover': {
+                                  boxShadow: 'var(--mantine-shadow-md)'
+                                }
+                              }}>
+                          <Group justify="space-between" align="flex-start">
+                            <div style={{ flex: 1 }}>
+                              <Group gap="sm" mb="xs">
+                                <Text fw={600} size="md">
                                   {event.title}
                                 </Text>
-                                {event.course && (
-                                  <Text size="xs" c="dimmed">
-                                    {event.course}
-                                  </Text>
-                                )}
-                              </div>
-                              <Group gap="xs">
-                                <ActionIcon
-                                  size="sm"
-                                  variant="subtle"
-                                  color="blue"
-                                  onClick={() => openEditModal(event)}
+                                <Badge 
+                                  size="sm" 
+                                  color={getEventTypeColor(event.type)} 
+                                  variant="light"
                                 >
-                                  <IconEdit size={12} />
-                                </ActionIcon>
-                                <ActionIcon
-                                  size="sm"
-                                  variant="subtle"
-                                  color="red"
-                                  onClick={() => handleDelete(event.id)}
+                                  {event.type}
+                                </Badge>
+                                <Badge 
+                                  size="sm" 
+                                  color={getStatusColor(event.status)} 
+                                  variant="outline"
                                 >
-                                  <IconTrash size={12} />
-                                </ActionIcon>
+                                  {event.status}
+                                </Badge>
                               </Group>
-                            </Group>
-
-                            <Group justify="space-between">
-                              <Group gap="xs">
-                                <IconClock size={12} />
-                                <Text size="xs" c="dimmed">
-                                  {formatTime(event.startTime)}
-                                  {event.endTime && ` - ${formatTime(event.endTime)}`}
+                              
+                              {event.course && (
+                                <Text size="sm" c="dimmed" mb="xs">
+                                  📚 {event.course}
                                 </Text>
+                              )}
+                              
+                              <Group gap="sm">
+                                <Group gap="xs">
+                                  <IconClock size={14} />
+                                  <Text size="sm" c="dimmed">
+                                    {formatTime(event.startTime)}
+                                    {event.endTime && ` - ${formatTime(event.endTime)}`}
+                                  </Text>
+                                </Group>
+                                
+                                {event.priority === 'high' && (
+                                  <Badge size="xs" color="red">🔥 Ưu tiên cao</Badge>
+                                )}
                               </Group>
-                            </Group>
-
+                              
+                              {event.description && (
+                                <Text size="sm" mt="xs" lineClamp={2}>
+                                  {event.description}
+                                </Text>
+                              )}
+                            </div>
+                            
                             <Group gap="xs">
-                              <Badge 
-                                size="xs" 
-                                color={getEventTypeColor(event.type)} 
-                                variant="light"
+                              <ActionIcon
+                                variant="subtle"
+                                color="blue"
+                                onClick={() => openEditModal(event)}
                               >
-                                {event.type}
-                              </Badge>
-                              <Badge 
-                                size="xs" 
-                                color={getStatusColor(event.status)} 
-                                variant="outline"
+                                <IconEdit size={16} />
+                              </ActionIcon>
+                              <ActionIcon
+                                variant="subtle"
+                                color="red"
+                                onClick={() => handleDelete(event.id)}
                               >
-                                {event.status}
-                              </Badge>
+                                <IconTrash size={16} />
+                              </ActionIcon>
                             </Group>
-                          </Stack>
+                          </Group>
                         </Card>
                       ))}
                     </Stack>
