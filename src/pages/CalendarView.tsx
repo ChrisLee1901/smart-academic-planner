@@ -52,6 +52,7 @@ export function CalendarView() {
       newDate.setDate(newDate.getDate() - 1);
     }
     setCurrentDate(newDate);
+    setSelectedDate(newDate);
   };
 
   const navigateNext = () => {
@@ -64,6 +65,7 @@ export function CalendarView() {
       newDate.setDate(newDate.getDate() + 1);
     }
     setCurrentDate(newDate);
+    setSelectedDate(newDate);
   };
 
   const getDateRangeText = () => {
@@ -78,14 +80,25 @@ export function CalendarView() {
     }
   };
 
-  // Get events for selected date
+  // Get events for selected date/period based on view mode
   const selectedDateEvents = events.filter(event => {
     const eventDate = dayjs(event.startTime);
     const selected = dayjs(selectedDate);
-    const matchesDate = eventDate.isSame(selected, 'day');
+    
+    let matchesDate = false;
+    if (viewMode === 'day') {
+      matchesDate = eventDate.isSame(selected, 'day');
+    } else if (viewMode === 'week') {
+      const startOfWeek = selected.startOf('week');
+      const endOfWeek = selected.endOf('week');
+      matchesDate = eventDate.isAfter(startOfWeek.subtract(1, 'day')) && eventDate.isBefore(endOfWeek.add(1, 'day'));
+    } else if (viewMode === 'month') {
+      matchesDate = eventDate.isSame(selected, 'month');
+    }
+    
     const matchesType = filterType === 'all' || event.type === filterType;
     return matchesDate && matchesType;
-  });
+  }).sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime());
 
   const openCreateModal = (date?: Date) => {
     const initialEvent = date ? {
@@ -484,6 +497,7 @@ export function CalendarView() {
                                 <Group gap="xs">
                                   <IconClock size={14} />
                                   <Text size="sm" c="dimmed">
+                                    {viewMode !== 'day' && `${dayjs(event.startTime).format('DD/MM')} - `}
                                     {formatTime(event.startTime)}
                                     {event.endTime && ` - ${formatTime(event.endTime)}`}
                                   </Text>
