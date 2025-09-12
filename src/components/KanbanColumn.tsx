@@ -1,4 +1,5 @@
-import { Stack, Title, Paper, Text, Badge, Group, Button, ActionIcon } from '@mantine/core';
+import { useState } from 'react';
+import { Stack, Title, Paper, Text, Badge, Group, Button, ActionIcon, Menu, Checkbox } from '@mantine/core';
 import { IconPlus, IconFilter } from '@tabler/icons-react';
 import type { AcademicEvent } from '../types';
 import { TaskCard } from './TaskCard';
@@ -27,6 +28,50 @@ export function KanbanColumn({
   onQuickAdd,
   color
 }: KanbanColumnProps) {
+  const [filterMenuOpened, setFilterMenuOpened] = useState(false);
+  const [activeFilters, setActiveFilters] = useState({
+    urgent: false,
+    overdue: false,
+    today: false,
+    thisWeek: false
+  });
+
+  // Apply filters to events
+  const filteredEvents = events.filter(event => {
+    if (!Object.values(activeFilters).some(Boolean)) {
+      return true; // No filters active, show all
+    }
+
+    const eventDate = new Date(event.startTime);
+    const now = new Date();
+    const daysUntil = Math.ceil((eventDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+    
+    // Check filters
+    if (activeFilters.urgent && daysUntil <= 2 && daysUntil >= 0) return true;
+    if (activeFilters.overdue && daysUntil < 0) return true;
+    if (activeFilters.today && daysUntil === 0) return true;
+    if (activeFilters.thisWeek && daysUntil >= 0 && daysUntil <= 7) return true;
+    
+    return false;
+  });
+
+  const handleFilterChange = (filterKey: keyof typeof activeFilters) => {
+    setActiveFilters(prev => ({
+      ...prev,
+      [filterKey]: !prev[filterKey]
+    }));
+  };
+
+  const clearFilters = () => {
+    setActiveFilters({
+      urgent: false,
+      overdue: false,
+      today: false,
+      thisWeek: false
+    });
+  };
+
+  const hasActiveFilters = Object.values(activeFilters).some(Boolean);
   const getStatusDescription = () => {
     switch (status) {
       case 'todo':
@@ -75,9 +120,75 @@ export function KanbanColumn({
           </Stack>
 
           <Group gap="xs">
-            <ActionIcon variant="light" color={color} size="sm">
-              <IconFilter size={16} />
-            </ActionIcon>
+            <Menu
+              opened={filterMenuOpened}
+              onChange={setFilterMenuOpened}
+              position="bottom-end"
+              width={200}
+              shadow="md"
+            >
+              <Menu.Target>
+                <ActionIcon 
+                  variant={hasActiveFilters ? "filled" : "light"} 
+                  color={color} 
+                  size="sm"
+                >
+                  <IconFilter size={16} />
+                </ActionIcon>
+              </Menu.Target>
+
+              <Menu.Dropdown>
+                <Menu.Label>Lọc sự kiện</Menu.Label>
+                
+                <Menu.Item>
+                  <Checkbox
+                    label="Gấp (≤ 2 ngày)"
+                    size="sm"
+                    checked={activeFilters.urgent}
+                    onChange={() => handleFilterChange('urgent')}
+                  />
+                </Menu.Item>
+                
+                <Menu.Item>
+                  <Checkbox
+                    label="Quá hạn"
+                    size="sm"
+                    checked={activeFilters.overdue}
+                    onChange={() => handleFilterChange('overdue')}
+                  />
+                </Menu.Item>
+                
+                <Menu.Item>
+                  <Checkbox
+                    label="Hôm nay"
+                    size="sm"
+                    checked={activeFilters.today}
+                    onChange={() => handleFilterChange('today')}
+                  />
+                </Menu.Item>
+                
+                <Menu.Item>
+                  <Checkbox
+                    label="Tuần này"
+                    size="sm"
+                    checked={activeFilters.thisWeek}
+                    onChange={() => handleFilterChange('thisWeek')}
+                  />
+                </Menu.Item>
+
+                {hasActiveFilters && (
+                  <>
+                    <Menu.Divider />
+                    <Menu.Item
+                      color="red"
+                      onClick={clearFilters}
+                    >
+                      Xóa tất cả bộ lọc
+                    </Menu.Item>
+                  </>
+                )}
+              </Menu.Dropdown>
+            </Menu>
             {onAddEvent && (
               <Button
                 variant="light"
@@ -100,8 +211,8 @@ export function KanbanColumn({
 
         {/* Events List */}
         <Stack gap="sm">
-          {events.length > 0 ? (
-            events.map(event => (
+          {filteredEvents.length > 0 && (
+            filteredEvents.map(event => (
               <TaskCard
                 key={event.id}
                 event={event}
@@ -110,7 +221,27 @@ export function KanbanColumn({
                 onStatusChange={onStatusChange}
               />
             ))
-          ) : (
+          )}
+          
+          {filteredEvents.length === 0 && hasActiveFilters && (
+            <Paper p="xl" style={{ border: '2px dashed #e9ecef', textAlign: 'center' }}>
+              <Stack align="center" gap="md">
+                <Text size="sm" c="dimmed">
+                  Không có sự kiện nào phù hợp với bộ lọc
+                </Text>
+                <Button 
+                  variant="subtle" 
+                  color={color} 
+                  size="xs"
+                  onClick={clearFilters}
+                >
+                  Xóa bộ lọc
+                </Button>
+              </Stack>
+            </Paper>
+          )}
+          
+          {filteredEvents.length === 0 && !hasActiveFilters && events.length === 0 && (
             <Paper p="xl" style={{ border: '2px dashed #e9ecef', textAlign: 'center' }}>
               <Stack align="center" gap="md">
                 <Text size="sm" c="dimmed">
