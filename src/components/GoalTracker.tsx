@@ -16,7 +16,8 @@ import {
   Select,
   Textarea,
   Grid,
-  Alert
+  Alert,
+  LoadingOverlay
 } from '@mantine/core';
 import { 
   IconTarget,
@@ -33,28 +34,24 @@ import { DatePickerInput } from '@mantine/dates';
 import { useForm } from '@mantine/form';
 import { notifications } from '@mantine/notifications';
 import { useEventStore } from '../store/eventStore';
+import { useGoalStore } from '../store/goalStore';
+import { type Goal } from '../services/databaseService';
 import dayjs from 'dayjs';
-
-interface Goal {
-  id: string;
-  title: string;
-  description?: string;
-  category: 'academic' | 'personal' | 'fitness' | 'skill' | 'habit';
-  type: 'daily' | 'weekly' | 'monthly' | 'one-time';
-  target: number;
-  current: number;
-  unit: string;
-  startDate: Date;
-  endDate?: Date;
-  priority: 'high' | 'medium' | 'low';
-  status: 'active' | 'completed' | 'paused' | 'failed';
-  streak: number;
-  lastUpdated: Date;
-}
 
 export function GoalTracker() {
   const { events } = useEventStore();
-  const [goals, setGoals] = useState<Goal[]>([]);
+  const { 
+    goals, 
+    isLoading, 
+    error, 
+    initialized,
+    loadGoals, 
+    addGoal, 
+    updateGoal, 
+    deleteGoal, 
+    clearError 
+  } = useGoalStore();
+  
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingGoal, setEditingGoal] = useState<Goal | null>(null);
 
@@ -72,36 +69,27 @@ export function GoalTracker() {
     }
   });
 
-  // Load goals from localStorage
+  // Load goals from database
   useEffect(() => {
-    const savedGoals = localStorage.getItem('academic-planner-goals');
-    if (savedGoals) {
-      try {
-        const parsed = JSON.parse(savedGoals);
-        setGoals(parsed.map((goal: any) => ({
-          ...goal,
-          startDate: new Date(goal.startDate),
-          endDate: goal.endDate ? new Date(goal.endDate) : undefined,
-          lastUpdated: new Date(goal.lastUpdated)
-        })));
-      } catch (error) {
-        console.error('Error loading goals:', error);
-      }
+    if (!initialized) {
+      loadGoals();
     }
-  }, []);
+  }, [initialized, loadGoals]);
 
-  // Save goals to localStorage
+  // Clear error when component unmounts
   useEffect(() => {
-    localStorage.setItem('academic-planner-goals', JSON.stringify(goals));
-  }, [goals]);
+    return () => {
+      clearError();
+    };
+  }, [clearError]);
 
   // Auto-update academic goals based on events
   useEffect(() => {
-    const updateAcademicGoals = () => {
+    const updateAcademicGoals = async () => {
       const now = dayjs();
       
-      setGoals(prevGoals => prevGoals.map(goal => {
-        if (goal.category !== 'academic' || goal.status !== 'active') return goal;
+      for (const goal of goals) {
+        if (goal.category !== 'academic' || goal.status !== 'active') continue;
 
         let newCurrent = goal.current;
         
@@ -136,54 +124,75 @@ export function GoalTracker() {
           }
         }
 
-        return {
-          ...goal,
-          current: newCurrent,
+        if (newCurrent !== goal.current) {
+          try {
+            await updateGoal(goal.id, { current: newCurrent });
+          } catch (error) {
+            console.error('Failed to update goal progress:', error);
+          }
+        }
+      }
+    };
+
+    if (goals.length > 0) {
+      updateAcademicGoals();
+    }
+  }, [events, goals, updateGoal]);
+
+  const handleSubmit = async (values: typeof form.values) => {
+    try {
+      if (editingGoal) {
+        await updateGoal(editingGoal.id, {
+          title: values.title,
+          description: values.description,
+          category: values.category,
+          type: values.type,
+          target: values.target,
+          unit: values.unit,
+          startDate: values.startDate,
+          endDate: values.endDate || undefined,
+          priority: values.priority
+        });
+        
+        notifications.show({
+          title: 'Cập nhật thành công',
+          message: 'Mục tiêu đã được cập nhật',
+          color: 'blue'
+        });
+      } else {
+        await addGoal({
+          title: values.title,
+          description: values.description,
+          category: values.category,
+          type: values.type,
+          target: values.target,
+          current: 0,
+          unit: values.unit,
+          startDate: values.startDate,
+          endDate: values.endDate || undefined,
+          priority: values.priority,
+          status: 'active',
+          streak: 0,
           lastUpdated: new Date()
-        };
-      }));
-    };
+        });
+        
+        notifications.show({
+          title: 'Tạo mục tiêu thành công',
+          message: 'Mục tiêu mới đã được thêm vào danh sách',
+          color: 'green'
+        });
+      }
 
-    updateAcademicGoals();
-  }, [events]);
-
-  const handleSubmit = (values: typeof form.values) => {
-    const goal: Goal = {
-      id: editingGoal?.id || Date.now().toString(),
-      title: values.title,
-      description: values.description,
-      category: values.category,
-      type: values.type,
-      target: values.target,
-      current: editingGoal?.current || 0,
-      unit: values.unit,
-      startDate: values.startDate,
-      endDate: values.endDate || undefined,
-      priority: values.priority,
-      status: 'active',
-      streak: editingGoal?.streak || 0,
-      lastUpdated: new Date()
-    };
-
-    if (editingGoal) {
-      setGoals(prev => prev.map(g => g.id === goal.id ? goal : g));
+      setIsFormOpen(false);
+      setEditingGoal(null);
+      form.reset();
+    } catch (error) {
       notifications.show({
-        title: 'Cập nhật thành công',
-        message: 'Mục tiêu đã được cập nhật',
-        color: 'blue'
-      });
-    } else {
-      setGoals(prev => [...prev, goal]);
-      notifications.show({
-        title: 'Tạo mục tiêu thành công',
-        message: 'Mục tiêu mới đã được thêm vào danh sách',
-        color: 'green'
+        title: 'Lỗi',
+        message: 'Không thể lưu mục tiêu. Vui lòng thử lại.',
+        color: 'red'
       });
     }
-
-    setIsFormOpen(false);
-    setEditingGoal(null);
-    form.reset();
   };
 
   const handleEdit = (goal: Goal) => {
@@ -202,23 +211,38 @@ export function GoalTracker() {
     setIsFormOpen(true);
   };
 
-  const handleDelete = (goalId: string) => {
+  const handleDelete = async (goalId: string) => {
     if (confirm('Bạn có chắc chắn muốn xóa mục tiêu này?')) {
-      setGoals(prev => prev.filter(g => g.id !== goalId));
-      notifications.show({
-        title: 'Đã xóa',
-        message: 'Mục tiêu đã được xóa',
-        color: 'red'
-      });
+      try {
+        await deleteGoal(goalId);
+        notifications.show({
+          title: 'Đã xóa',
+          message: 'Mục tiêu đã được xóa',
+          color: 'red'
+        });
+      } catch (error) {
+        notifications.show({
+          title: 'Lỗi',
+          message: 'Không thể xóa mục tiêu. Vui lòng thử lại.',
+          color: 'red'
+        });
+      }
     }
   };
 
-  const updateProgress = (goalId: string, increment: number) => {
-    setGoals(prev => prev.map(goal => {
-      if (goal.id !== goalId) return goal;
-      
-      const newCurrent = Math.max(0, goal.current + increment);
-      const isCompleted = newCurrent >= goal.target;
+  const updateProgress = async (goalId: string, increment: number) => {
+    const goal = goals.find(g => g.id === goalId);
+    if (!goal) return;
+    
+    const newCurrent = Math.max(0, goal.current + increment);
+    const isCompleted = newCurrent >= goal.target;
+    
+    try {
+      await updateGoal(goalId, {
+        current: newCurrent,
+        status: isCompleted ? 'completed' : goal.status,
+        streak: isCompleted ? goal.streak + 1 : goal.streak
+      });
       
       if (isCompleted && goal.status !== 'completed') {
         notifications.show({
@@ -228,15 +252,13 @@ export function GoalTracker() {
           autoClose: 8000
         });
       }
-
-      return {
-        ...goal,
-        current: newCurrent,
-        status: isCompleted ? 'completed' : goal.status,
-        streak: isCompleted ? goal.streak + 1 : goal.streak,
-        lastUpdated: new Date()
-      };
-    }));
+    } catch (error) {
+      notifications.show({
+        title: 'Lỗi',
+        message: 'Không thể cập nhật tiến độ. Vui lòng thử lại.',
+        color: 'red'
+      });
+    }
   };
 
   const getCategoryIcon = (category: Goal['category']) => {
@@ -269,8 +291,16 @@ export function GoalTracker() {
   const completedGoals = goals.filter(g => g.status === 'completed');
 
   return (
-    <Paper withBorder p="md" radius="md">
+    <Paper withBorder p="md" radius="md" style={{ position: 'relative' }}>
+      <LoadingOverlay visible={isLoading} />
+      
       <Stack gap="md">
+        {/* Error Alert */}
+        {error && (
+          <Alert color="red" onClose={clearError} withCloseButton>
+            {error}
+          </Alert>
+        )}
         {/* Header */}
         <Group justify="space-between">
           <Group>

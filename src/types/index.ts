@@ -27,3 +27,42 @@ export interface EventFormData {
   priority?: 'low' | 'medium' | 'high';
   tags?: string[];
 }
+
+export interface Goal {
+  id: string;
+  name: string;
+  description?: string;
+  category: 'academic' | 'personal' | 'career' | 'health' | 'financial';
+  priority: 'low' | 'medium' | 'high';
+  status: 'not-started' | 'in-progress' | 'completed' | 'paused';
+  currentProgress: number;
+  targetValue: number;
+  unit: string;
+  deadline?: Date;
+  color: string;
+  icon: string;
+  createdAt: Date;
+  updatedAt: Date;
+  completedAt?: Date;
+}
+
+export interface Habit {
+  id: string;
+  name: string;
+  description?: string;
+  category: 'health' | 'productivity' | 'learning' | 'personal' | 'social';
+  frequency: 'daily' | 'weekly' | 'custom';
+  target: number; // times per frequency period
+  color: string;
+  icon: string;
+  createdAt: Date;
+  isActive: boolean;
+}
+
+export interface HabitRecord {
+  habitId: string;
+  date: string; // YYYY-MM-DD format
+  completed: boolean;
+  completedAt?: Date;
+  notes?: string;
+}
