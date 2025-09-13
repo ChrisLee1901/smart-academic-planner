@@ -23,6 +23,11 @@ import {
   IconSparkles,
   IconUser
 } from '@tabler/icons-react';
+import { FloatingActionButton } from '../components/FloatingActionButton';
+import { FloatingAIButton } from '../components/FloatingAIButton';
+import { AIStudyAssistant } from '../components/AIStudyAssistant';
+import { geminiService } from '../services/geminiService';
+import type { AcademicEvent } from '../types';
 
 interface MainLayoutProps {
   children: React.ReactNode;
@@ -33,6 +38,13 @@ interface MainLayoutProps {
 export function MainLayout({ children, activeTab, onTabChange }: MainLayoutProps) {
   const [opened, { toggle }] = useDisclosure();
   const [hoveredNav, setHoveredNav] = useState<string | null>(null);
+  const [isAIOpen, setIsAIOpen] = useState(false);
+
+  const handleQuickAdd = async (eventData: AcademicEvent) => {
+    // This will just navigate to dashboard where user can add tasks
+    onTabChange('dashboard');
+    console.log('Quick add:', eventData); // To use the parameter
+  };
 
   const navLinks = [
     { 
@@ -272,6 +284,17 @@ export function MainLayout({ children, activeTab, onTabChange }: MainLayoutProps
                 }}
               />
             ))}
+            
+            {/* Quick Action Buttons - Right after AI Assistant */}
+            <Box mt="md" mb="sm">
+              <Group gap="md" justify="center" align="flex-start">
+                <FloatingAIButton 
+                  onOpenAI={() => setIsAIOpen(true)}
+                  usingGemini={geminiService.isGeminiAvailable()}
+                />
+                <FloatingActionButton onAddEvent={handleQuickAdd} />
+              </Group>
+            </Box>
           </Stack>
         </Box>
 
@@ -283,7 +306,7 @@ export function MainLayout({ children, activeTab, onTabChange }: MainLayoutProps
           }}
         />
         
-        <Box style={{ marginTop: 'auto' }}>
+        <Box style={{ marginTop: 'auto', marginBottom: '80px' }}>
           <Stack gap="md" align="center">
             <Avatar
               size="lg"
@@ -342,6 +365,12 @@ export function MainLayout({ children, activeTab, onTabChange }: MainLayoutProps
         >
           {children}
         </Box>
+        
+        {/* AI Study Assistant Modal */}
+        <AIStudyAssistant 
+          isModalOpen={isAIOpen}
+          onModalToggle={setIsAIOpen}
+        />
       </AppShell.Main>
     </AppShell>
   );

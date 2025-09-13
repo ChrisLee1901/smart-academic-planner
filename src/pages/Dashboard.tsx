@@ -30,9 +30,7 @@ import { PomodoroTimer } from '../components/PomodoroTimer';
 import { GoalTracker } from '../components/GoalTracker';
 import { HabitTracker } from '../components/HabitTracker';
 import { ProductivityAnalytics } from '../components/ProductivityAnalytics';
-import { AIStudyAssistant } from '../components/AIStudyAssistant';
 import { EventForm } from '../components/EventForm';
-import { FloatingActionButton } from '../components/FloatingActionButton';
 import { IntegratedDashboard } from '../components/IntegratedDashboard';
 import { useEventStore } from '../store/eventStore';
 import type { AcademicEvent } from '../types';
@@ -615,9 +613,6 @@ export function Dashboard({ onTabChange }: DashboardProps) {
           
           <Title order={2} ta="center">🛠️ Công cụ hỗ trợ học tập</Title>
           
-          {/* AI Study Assistant */}
-          <AIStudyAssistant />
-          
           <SimpleGrid cols={{ base: 1, md: 2 }} spacing="lg">
             {/* Goal Tracker */}
             <GoalTracker />
@@ -657,20 +652,6 @@ export function Dashboard({ onTabChange }: DashboardProps) {
           />
         </Modal>
 
-        {/* Floating Action Button */}
-        <Box
-          style={{
-            position: 'sticky',
-            bottom: '20px',
-            display: 'flex',
-            justifyContent: 'flex-end',
-            marginTop: '30px',
-            paddingRight: '30px',
-            zIndex: 1000,
-          }}
-        >
-          <FloatingActionButton onAddEvent={handleQuickAdd} />
-        </Box>
       </Stack>
     </Container>
   );

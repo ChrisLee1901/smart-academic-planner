@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Paper,
   Title,
@@ -83,19 +83,36 @@ const STUDY_TIPS: StudyTip[] = [
   }
 ];
 
-export function AIStudyAssistant() {
+interface AIStudyAssistantProps {
+  isModalOpen?: boolean;
+  onModalToggle?: (open: boolean) => void;
+}
+
+export function AIStudyAssistant({ isModalOpen = false, onModalToggle }: AIStudyAssistantProps) {
   const { events } = useEventStore();
-  const [isAIOpen, setIsAIOpen] = useState(false);
+  const [isAIOpen, setIsAIOpen] = useState(isModalOpen);
   const [messages, setMessages] = useState<AIAssistantMessage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedTips, setSelectedTips] = useState<StudyTip[]>([]);
   const [usingGemini, setUsingGemini] = useState(true);
+
+  // Sync with external control
+  useEffect(() => {
+    setIsAIOpen(isModalOpen);
+  }, [isModalOpen]);
 
   const form = useForm({
     initialValues: {
       message: ''
     }
   });
+
+  const handleToggleAI = (open: boolean) => {
+    setIsAIOpen(open);
+    if (onModalToggle) {
+      onModalToggle(open);
+    }
+  };
 
   // Generate AI responses with Gemini API and fallback
   const generateAIResponse = async (userMessage: string): Promise<string> => {
@@ -263,7 +280,7 @@ export function AIStudyAssistant() {
           
           <Button
             leftSection={<IconBrain size={16} />}
-            onClick={() => setIsAIOpen(true)}
+            onClick={() => handleToggleAI(true)}
             variant="light"
           >
             Hỏi AI Assistant
@@ -332,7 +349,7 @@ export function AIStudyAssistant() {
         {/* AI Chat Modal */}
         <Modal
           opened={isAIOpen}
-          onClose={() => setIsAIOpen(false)}
+          onClose={() => handleToggleAI(false)}
           title={
             <Group>
               <Text fw={500}>AI Study Assistant</Text>
@@ -456,7 +473,7 @@ export function AIStudyAssistant() {
             size="xs" 
             variant="light"
             onClick={() => {
-              setIsAIOpen(true);
+              handleToggleAI(true);
               form.setValues({ message: 'Làm sao để tôi tập trung học tốt hơn?' });
             }}
           >
@@ -466,7 +483,7 @@ export function AIStudyAssistant() {
             size="xs" 
             variant="light"
             onClick={() => {
-              setIsAIOpen(true);
+              handleToggleAI(true);
               form.setValues({ message: 'Tôi cần lập kế hoạch học hiệu quả' });
             }}
           >
@@ -476,7 +493,7 @@ export function AIStudyAssistant() {
             size="xs" 
             variant="light"
             onClick={() => {
-              setIsAIOpen(true);
+              handleToggleAI(true);
               form.setValues({ message: 'Làm thế nào để duy trì động lực học?' });
             }}
           >

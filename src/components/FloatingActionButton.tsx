@@ -223,21 +223,21 @@ export function FloatingActionButton({ onAddEvent }: FloatingActionButtonProps) 
         {!isMenuOpen && (
           <Tooltip label="Tạo nhiệm vụ mới" position="left" openDelay={500}>
             <ActionIcon
-              size="xl"
+              size="lg"
               radius="xl"
               onClick={() => setIsMenuOpen(true)}
               onMouseEnter={() => setIsHovered(true)}
               onMouseLeave={() => setIsHovered(false)}
               style={{
                 background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                border: '3px solid rgba(255, 255, 255, 0.8)',
-                width: '70px',
-                height: '70px',
+                border: '2px solid rgba(255, 255, 255, 0.8)',
+                width: '56px',
+                height: '56px',
                 boxShadow: isHovered 
-                  ? '0 20px 50px rgba(102, 126, 234, 0.6), 0 0 30px rgba(118, 75, 162, 0.4)'
-                  : '0 12px 35px rgba(102, 126, 234, 0.4)',
+                  ? '0 15px 40px rgba(102, 126, 234, 0.5), 0 0 25px rgba(118, 75, 162, 0.3)'
+                  : '0 8px 25px rgba(102, 126, 234, 0.3)',
                 transform: isHovered ? 'scale(1.1) rotate(90deg)' : 'scale(1) rotate(0deg)',
-                transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+                transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
                 backdropFilter: 'blur(20px)',
                 animation: 'pulse 3s infinite',
                 position: 'relative',
@@ -255,7 +255,7 @@ export function FloatingActionButton({ onAddEvent }: FloatingActionButtonProps) 
                   transition: 'opacity 0.3s ease',
                 }}
               >
-                <IconSparkles size={24} style={{ color: 'white' }} />
+                <IconSparkles size={22} style={{ color: 'white' }} />
               </Box>
               
               {/* Plus Icon */}
@@ -269,7 +269,7 @@ export function FloatingActionButton({ onAddEvent }: FloatingActionButtonProps) 
                   transition: 'opacity 0.3s ease',
                 }}
               >
-                <IconPlus size={26} style={{ color: 'white' }} />
+                <IconPlus size={22} style={{ color: 'white' }} />
               </Box>
 
               {/* Ripple Effect */}
