@@ -658,7 +658,19 @@ export function Dashboard({ onTabChange }: DashboardProps) {
         </Modal>
 
         {/* Floating Action Button */}
-        <FloatingActionButton onAddEvent={handleQuickAdd} />
+        <Box
+          style={{
+            position: 'sticky',
+            bottom: '20px',
+            display: 'flex',
+            justifyContent: 'flex-end',
+            marginTop: '30px',
+            paddingRight: '30px',
+            zIndex: 1000,
+          }}
+        >
+          <FloatingActionButton onAddEvent={handleQuickAdd} />
+        </Box>
       </Stack>
     </Container>
   );

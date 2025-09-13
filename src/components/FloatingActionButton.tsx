@@ -75,14 +75,14 @@ export function FloatingActionButton({ onAddEvent }: FloatingActionButtonProps) 
       {/* Floating Action Button Container */}
       <Box
         style={{
-          position: 'fixed',
-          bottom: '30px',
-          right: '30px',
+          position: 'relative',
           zIndex: 1500,
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'flex-end',
           gap: '16px',
+          marginLeft: 'auto',
+          width: 'fit-content',
         }}
       >
         {/* Quick Options Menu */}
@@ -105,17 +105,22 @@ export function FloatingActionButton({ onAddEvent }: FloatingActionButtonProps) 
                 style={{
                   background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.85) 100%)',
                   backdropFilter: 'blur(20px)',
-                  border: '2px solid rgba(255, 255, 255, 0.3)',
+                  border: '2px solid rgba(0, 0, 0, 0.1)',
                   boxShadow: '0 8px 32px rgba(0, 0, 0, 0.15)',
+                  color: '#1a1a1a',
                   transition: 'all 0.3s ease',
                 }}
                 onMouseEnter={(e) => {
                   e.currentTarget.style.transform = 'scale(1.1) rotate(90deg)';
                   e.currentTarget.style.boxShadow = '0 12px 40px rgba(0, 0, 0, 0.2)';
+                  e.currentTarget.style.background = 'linear-gradient(135deg, rgba(239, 68, 68, 0.9) 0%, rgba(220, 38, 38, 0.9) 100%)';
+                  e.currentTarget.style.color = '#ffffff';
                 }}
                 onMouseLeave={(e) => {
                   e.currentTarget.style.transform = 'scale(1) rotate(0deg)';
                   e.currentTarget.style.boxShadow = '0 8px 32px rgba(0, 0, 0, 0.15)';
+                  e.currentTarget.style.background = 'linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.85) 100%)';
+                  e.currentTarget.style.color = '#1a1a1a';
                 }}
               >
                 <IconX size={18} />
@@ -131,25 +136,28 @@ export function FloatingActionButton({ onAddEvent }: FloatingActionButtonProps) 
                     size="md"
                     onClick={() => openFormWithStatus(option.status)}
                     style={{
-                      background: `linear-gradient(135deg, ${option.gradient.from}20 0%, ${option.gradient.to}20 100%)`,
+                      background: `linear-gradient(135deg, ${option.gradient.from}60 0%, ${option.gradient.to}60 100%)`,
                       backdropFilter: 'blur(20px)',
-                      border: `2px solid ${option.gradient.from}40`,
-                      boxShadow: `0 8px 32px ${option.gradient.from}30`,
+                      border: `2px solid ${option.gradient.from}80`,
+                      boxShadow: `0 8px 32px ${option.gradient.from}40`,
                       minWidth: '180px',
                       fontWeight: 700,
                       letterSpacing: '0.5px',
+                      color: '#1a1a1a',
                       transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
                       animation: `slide-in-right 0.3s ease-out ${index * 0.1}s both`,
                     }}
                     onMouseEnter={(e) => {
                       e.currentTarget.style.transform = 'translateX(-8px) scale(1.05)';
-                      e.currentTarget.style.background = `linear-gradient(135deg, ${option.gradient.from}40 0%, ${option.gradient.to}40 100%)`;
-                      e.currentTarget.style.boxShadow = `0 12px 40px ${option.gradient.from}50`;
+                      e.currentTarget.style.background = `linear-gradient(135deg, ${option.gradient.from}80 0%, ${option.gradient.to}80 100%)`;
+                      e.currentTarget.style.boxShadow = `0 12px 40px ${option.gradient.from}60`;
+                      e.currentTarget.style.color = '#ffffff';
                     }}
                     onMouseLeave={(e) => {
                       e.currentTarget.style.transform = 'translateX(0) scale(1)';
-                      e.currentTarget.style.background = `linear-gradient(135deg, ${option.gradient.from}20 0%, ${option.gradient.to}20 100%)`;
-                      e.currentTarget.style.boxShadow = `0 8px 32px ${option.gradient.from}30`;
+                      e.currentTarget.style.background = `linear-gradient(135deg, ${option.gradient.from}60 0%, ${option.gradient.to}60 100%)`;
+                      e.currentTarget.style.boxShadow = `0 8px 32px ${option.gradient.from}40`;
+                      e.currentTarget.style.color = '#1a1a1a';
                     }}
                   >
                     {option.label}
@@ -180,25 +188,28 @@ export function FloatingActionButton({ onAddEvent }: FloatingActionButtonProps) 
                     setIsMenuOpen(false);
                   }}
                   style={{
-                    background: 'linear-gradient(135deg, rgba(156, 39, 176, 0.15) 0%, rgba(123, 31, 162, 0.15) 100%)',
+                    background: 'linear-gradient(135deg, rgba(156, 39, 176, 0.4) 0%, rgba(123, 31, 162, 0.4) 100%)',
                     backdropFilter: 'blur(20px)',
-                    border: '2px solid rgba(156, 39, 176, 0.3)',
-                    boxShadow: '0 8px 32px rgba(156, 39, 176, 0.25)',
+                    border: '2px solid rgba(156, 39, 176, 0.6)',
+                    boxShadow: '0 8px 32px rgba(156, 39, 176, 0.35)',
                     minWidth: '180px',
                     fontWeight: 700,
                     letterSpacing: '0.5px',
+                    color: '#1a1a1a',
                     transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
                     animation: 'slide-in-right 0.3s ease-out 0.3s both',
                   }}
                   onMouseEnter={(e) => {
                     e.currentTarget.style.transform = 'translateX(-8px) scale(1.05)';
-                    e.currentTarget.style.background = 'linear-gradient(135deg, rgba(156, 39, 176, 0.25) 0%, rgba(123, 31, 162, 0.25) 100%)';
-                    e.currentTarget.style.boxShadow = '0 12px 40px rgba(156, 39, 176, 0.4)';
+                    e.currentTarget.style.background = 'linear-gradient(135deg, rgba(156, 39, 176, 0.7) 0%, rgba(123, 31, 162, 0.7) 100%)';
+                    e.currentTarget.style.boxShadow = '0 12px 40px rgba(156, 39, 176, 0.5)';
+                    e.currentTarget.style.color = '#ffffff';
                   }}
                   onMouseLeave={(e) => {
                     e.currentTarget.style.transform = 'translateX(0) scale(1)';
-                    e.currentTarget.style.background = 'linear-gradient(135deg, rgba(156, 39, 176, 0.15) 0%, rgba(123, 31, 162, 0.15) 100%)';
-                    e.currentTarget.style.boxShadow = '0 8px 32px rgba(156, 39, 176, 0.25)';
+                    e.currentTarget.style.background = 'linear-gradient(135deg, rgba(156, 39, 176, 0.4) 0%, rgba(123, 31, 162, 0.4) 100%)';
+                    e.currentTarget.style.boxShadow = '0 8px 32px rgba(156, 39, 176, 0.35)';
+                    e.currentTarget.style.color = '#1a1a1a';
                   }}
                 >
                   Form chi tiết
