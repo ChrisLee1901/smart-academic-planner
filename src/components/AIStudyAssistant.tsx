@@ -27,6 +27,7 @@ import {
 import { useForm } from '@mantine/form';
 import { notifications } from '@mantine/notifications';
 import { useEventStore } from '../store/eventStore';
+import { geminiService } from '../services/geminiService';
 import dayjs from 'dayjs';
 
 interface AIAssistantMessage {
@@ -88,6 +89,7 @@ export function AIStudyAssistant() {
   const [messages, setMessages] = useState<AIAssistantMessage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedTips, setSelectedTips] = useState<StudyTip[]>([]);
+  const [usingGemini, setUsingGemini] = useState(true);
 
   const form = useForm({
     initialValues: {
@@ -95,29 +97,48 @@ export function AIStudyAssistant() {
     }
   });
 
-  // Generate AI responses (simulated)
+  // Generate AI responses with Gemini API and fallback
   const generateAIResponse = async (userMessage: string): Promise<string> => {
-    await new Promise(resolve => setTimeout(resolve, 1500)); // Simulate API call
+    // Prepare context for AI
+    const completedToday = events.filter(e => 
+      dayjs(e.startTime).isSame(dayjs(), 'day') && e.status === 'done'
+    ).length;
     
-    const lowerMessage = userMessage.toLowerCase();
-    
-    if (lowerMessage.includes('học') || lowerMessage.includes('tập trung')) {
-      return 'Để học hiệu quả hơn, tôi khuyên bạn nên:\n\n1. Sử dụng kỹ thuật Pomodoro (25 phút học + 5 phút nghỉ)\n2. Tạo môi trường yên tĩnh, tắt thông báo\n3. Đặt mục tiêu cụ thể cho mỗi phiên học\n4. Dùng phương pháp Active Recall để kiểm tra kiến thức\n\nBạn muốn tôi tạo lịch học chi tiết không?';
+    const totalToday = events.filter(e => 
+      dayjs(e.startTime).isSame(dayjs(), 'day')
+    ).length;
+
+    const context = {
+      userMessage,
+      completedTasks: completedToday,
+      totalTasks: totalToday,
+      currentTime: dayjs().format('HH:mm DD/MM/YYYY'),
+      recentTopics: messages.slice(-3).map(m => m.content)
+    };
+
+    // Try Gemini API first
+    if (geminiService.isGeminiAvailable()) {
+      try {
+        setUsingGemini(true);
+        const response = await geminiService.generateResponse(userMessage, context);
+        return response;
+      } catch (error) {
+        console.warn('Gemini API failed, falling back to local logic:', error);
+        setUsingGemini(false);
+        
+        // Show notification about fallback
+        notifications.show({
+          title: 'Chuyển sang chế độ offline',
+          message: 'API Gemini không khả dụng, sử dụng AI cục bộ.',
+          color: 'yellow',
+          autoClose: 3000
+        });
+      }
     }
-    
-    if (lowerMessage.includes('thời gian') || lowerMessage.includes('lịch trình')) {
-      return 'Về quản lý thời gian, tôi suggest:\n\n1. Lập danh sách công việc ưu tiên hàng ngày\n2. Sử dụng ma trận Eisenhower để phân loại task\n3. Dành 80% thời gian cho việc quan trọng\n4. Nghỉ ngơi đầy đủ để duy trì hiệu suất\n\nTôi có thể phân tích lịch trình hiện tại của bạn nếu cần!';
-    }
-    
-    if (lowerMessage.includes('động lực') || lowerMessage.includes('stress')) {
-      return 'Để duy trì động lực học tập:\n\n1. Đặt mục tiêu ngắn hạn và khen thưởng bản thân\n2. Tìm partner học tập để tạo accountability\n3. Visualize thành công và lợi ích lâu dài\n4. Thực hành mindfulness khi stress\n\nHãy nhớ rằng tiến bộ nhỏ mỗi ngày sẽ tạo nên thay đổi lớn!';
-    }
-    
-    if (lowerMessage.includes('thi') || lowerMessage.includes('kiểm tra')) {
-      return 'Chuẩn bị thi hiệu quả:\n\n1. Lập kế hoạch ôn tập chi tiết 2-3 tuần trước\n2. Sử dụng flashcards và practice tests\n3. Học nhóm để thảo luận câu khó\n4. Đảm bảo ngủ đủ giấc trước ngày thi\n\nBạn có muốn tôi tạo schedule ôn tập cụ thể không?';
-    }
-    
-    return 'Cảm ơn bạn đã chia sẻ! Tôi là AI Assistant chuyên hỗ trợ học tập. Tôi có thể giúp bạn:\n\n• Lập kế hoạch học tập hiệu quả\n• Tư vấn kỹ thuật ghi nhớ\n• Quản lý thời gian và stress\n• Tối ưu hóa môi trường học\n\nHãy cho tôi biết bạn đang gặp khó khăn gì trong việc học nhé!';
+
+    // Fallback to local logic
+    setUsingGemini(false);
+    return geminiService.generateFallbackResponse(userMessage, context);
   };
 
   const handleSendMessage = async (values: typeof form.values) => {
@@ -150,10 +171,23 @@ export function AIStudyAssistant() {
       updateStudyTips(values.message);
       
     } catch (error) {
+      console.error('AI Assistant error:', error);
+      
+      // Fallback error response
+      const errorMessage: AIAssistantMessage = {
+        id: (Date.now() + 1).toString(),
+        type: 'assistant',
+        content: '🔧 Xin lỗi, tôi gặp sự cố kỹ thuật. Đây là một số gợi ý chung:\n\n• Sử dụng kỹ thuật Pomodoro cho việc học\n• Tạo môi trường yên tĩnh\n• Nghỉ ngơi đầy đủ\n• Đặt mục tiêu rõ ràng\n\nHãy thử lại sau hoặc đặt câu hỏi khác!',
+        timestamp: new Date()
+      };
+
+      setMessages(prev => [...prev, errorMessage]);
+      
       notifications.show({
-        title: 'Lỗi',
-        message: 'Không thể kết nối với AI Assistant. Vui lòng thử lại.',
-        color: 'red'
+        title: 'Lỗi AI Assistant',
+        message: error instanceof Error ? error.message : 'Đã xảy ra lỗi không xác định',
+        color: 'red',
+        autoClose: 5000
       });
     } finally {
       setIsLoading(false);
@@ -215,6 +249,16 @@ export function AIStudyAssistant() {
           <Group>
             <IconRobot size={24} color="#228be6" />
             <Title order={3}>AI Study Assistant</Title>
+            {usingGemini && (
+              <Badge size="xs" color="green" variant="light">
+                Gemini AI
+              </Badge>
+            )}
+            {!usingGemini && geminiService.isGeminiAvailable() && (
+              <Badge size="xs" color="yellow" variant="light">
+                Offline Mode
+              </Badge>
+            )}
           </Group>
           
           <Button
@@ -222,7 +266,7 @@ export function AIStudyAssistant() {
             onClick={() => setIsAIOpen(true)}
             variant="light"
           >
-            Chat với AI
+            Hỏi AI Assistant
           </Button>
         </Group>
 
@@ -289,7 +333,20 @@ export function AIStudyAssistant() {
         <Modal
           opened={isAIOpen}
           onClose={() => setIsAIOpen(false)}
-          title="AI Study Assistant"
+          title={
+            <Group>
+              <Text fw={500}>AI Study Assistant</Text>
+              {usingGemini ? (
+                <Badge size="sm" color="green" variant="light">
+                  🤖 Powered by Gemini AI
+                </Badge>
+              ) : (
+                <Badge size="sm" color="blue" variant="light">
+                  🔄 Offline Mode
+                </Badge>
+              )}
+            </Group>
+          }
           size="lg"
         >
           <Stack gap="md" h={400}>
@@ -297,11 +354,35 @@ export function AIStudyAssistant() {
             <Box style={{ flex: 1, overflowY: 'auto', maxHeight: '300px' }} p="sm">
               {messages.length === 0 ? (
                 <Alert icon={<IconBrain size={16} />} color="blue">
-                  Xin chào! Tôi là AI Assistant học tập. Hãy hỏi tôi về:
-                  <br />• Kỹ thuật học hiệu quả
-                  <br />• Quản lý thời gian
-                  <br />• Tạo động lực học tập
-                  <br />• Chuẩn bị thi cử
+                  <Stack gap="xs">
+                    <Text>
+                      Xin chào! Tôi là AI Assistant học tập {usingGemini ? 'với Gemini AI' : '(chế độ offline)'}. Hãy hỏi tôi về:
+                    </Text>
+                    <Text size="sm">
+                      • Kỹ thuật học hiệu quả<br />
+                      • Quản lý thời gian<br />
+                      • Tạo động lực học tập<br />
+                      • Chuẩn bị thi cử
+                    </Text>
+                    {!usingGemini && (
+                      <Button 
+                        size="xs" 
+                        variant="light" 
+                        color="green"
+                        onClick={() => {
+                          geminiService.resetAvailability();
+                          setUsingGemini(true);
+                          notifications.show({
+                            title: 'Đã reset',
+                            message: 'Thử lại kết nối Gemini API',
+                            color: 'green'
+                          });
+                        }}
+                      >
+                        🔄 Thử lại Gemini AI
+                      </Button>
+                    )}
+                  </Stack>
                 </Alert>
               ) : (
                 <Stack gap="md">
@@ -317,7 +398,13 @@ export function AIStudyAssistant() {
                       }}
                     >
                       <Stack gap="xs">
-                        <Text size="sm" style={{ whiteSpace: 'pre-line' }}>
+                        <Text 
+                          size="sm" 
+                          style={{ 
+                            whiteSpace: 'pre-line',
+                            lineHeight: 1.6
+                          }}
+                        >
                           {message.content}
                         </Text>
                         <Text size="xs" c="dimmed">
@@ -345,7 +432,7 @@ export function AIStudyAssistant() {
             <form onSubmit={form.onSubmit(handleSendMessage)}>
               <Group gap="xs">
                 <TextInput
-                  placeholder="Hỏi AI về kỹ thuật học tập, quản lý thời gian..."
+                  placeholder={`Hỏi AI ${usingGemini ? 'Gemini' : ''} về kỹ thuật học tập, quản lý thời gian...`}
                   style={{ flex: 1 }}
                   {...form.getInputProps('message')}
                   disabled={isLoading}
