@@ -92,7 +92,7 @@ export function Dashboard({ onTabChange }: DashboardProps) {
         
         // Integrate with other systems when task is completed
         if (status === 'done') {
-          integrationService.completeTask(updatedEvent);
+          await integrationService.completeTask(updatedEvent);
         }
       }
     } catch (error) {

@@ -17,7 +17,8 @@ import {
   Textarea,
   Grid,
   Alert,
-  LoadingOverlay
+  LoadingOverlay,
+  Tooltip
 } from '@mantine/core';
 import { 
   IconTarget,
@@ -28,7 +29,9 @@ import {
   IconCalendar,
   IconBulb,
   IconFlame,
-  IconStar
+  IconStar,
+  IconMinus,
+  IconCheck
 } from '@tabler/icons-react';
 import { DatePickerInput } from '@mantine/dates';
 import { useForm } from '@mantine/form';
@@ -416,31 +419,44 @@ export function GoalTracker() {
                       />
                     </Stack>
 
-                    {/* Manual Progress Update */}
-                    <Group justify="space-between">
+                    {/* Manual Progress Update - Improved UI */}
+                    <Group justify="space-between" align="center">
+                      <Text size="sm" c="dimmed">Cập nhật tiến độ:</Text>
+                      
                       <Group gap="xs">
-                        <Button
-                          size="xs"
-                          variant="light"
-                          onClick={() => updateProgress(goal.id, -1)}
-                          disabled={goal.current <= 0}
-                        >
-                          -1
-                        </Button>
-                        <Button
-                          size="xs"
-                          variant="light"
-                          onClick={() => updateProgress(goal.id, 1)}
-                          disabled={goal.current >= goal.target}
-                        >
-                          +1
-                        </Button>
+                        <Tooltip label="Giảm 1 đơn vị">
+                          <ActionIcon
+                            size="sm"
+                            variant="light"
+                            color="red"
+                            onClick={() => updateProgress(goal.id, -1)}
+                            disabled={goal.current <= 0}
+                          >
+                            <IconMinus size={14} />
+                          </ActionIcon>
+                        </Tooltip>
+                        
+                        <Text size="sm" fw={500} style={{ minWidth: '60px', textAlign: 'center' }}>
+                          {goal.current}/{goal.target}
+                        </Text>
+                        
+                        <Tooltip label={goal.current >= goal.target ? "Hoàn thành mục tiêu" : "Tăng 1 đơn vị"}>
+                          <ActionIcon
+                            size="sm"
+                            variant="light"
+                            color={goal.current >= goal.target ? "blue" : "green"}
+                            onClick={() => updateProgress(goal.id, 1)}
+                            disabled={goal.status === 'completed'}
+                          >
+                            {goal.current >= goal.target ? <IconCheck size={14} /> : <IconPlus size={14} />}
+                          </ActionIcon>
+                        </Tooltip>
                       </Group>
                       
                       {goal.streak > 0 && (
                         <Group gap="xs">
                           <IconFlame size={16} color="#fa5252" />
-                          <Text size="sm" c="orange">
+                          <Text size="sm" c="orange" fw={500}>
                             {goal.streak} chuỗi
                           </Text>
                         </Group>

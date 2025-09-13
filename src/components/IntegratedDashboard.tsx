@@ -14,30 +14,24 @@ import {
   Alert,
   ActionIcon,
   Tooltip,
-  Progress,
-  SimpleGrid,
   Modal,
   NumberInput,
   Button,
   Divider,
-  Checkbox,
-  Slider,
-  Box
+  Checkbox
 } from '@mantine/core';
 import {
   IconBrain,
   IconTarget,
-  IconFlame,
   IconChartLine,
   IconSettings,
   IconInfoCircle,
   IconCheck,
   IconClock,
-  IconTrophy,
   IconDeviceFloppy,
   IconRefresh
 } from '@tabler/icons-react';
-import { integrationService, type IntegratedStats } from '../services/integrationService';
+import { integrationService, type IntegratedStats, type IntegrationEvent } from '../services/integrationService';
 
 export function IntegratedDashboard() {
   const [stats, setStats] = useState<IntegratedStats>({
@@ -53,19 +47,19 @@ export function IntegratedDashboard() {
   // Settings state
   const [settings, setSettings] = useState({
     dailyFocusGoal: 120, // minutes
-    dailyTaskGoal: 5,
-    dailyHabitGoal: 3,
     enablePomodoroIntegration: true,
-    enableTaskGoalIntegration: true,
-    enableHabitIntegration: true,
-    enableNotifications: true,
-    productivityThreshold: 80
+    enableNotifications: true
   });
 
   useEffect(() => {
-    const updateStats = () => {
-      setStats(integrationService.getIntegratedStats());
-      setIntegrationEnabled(integrationService.isIntegrationEnabled());
+    const updateStats = async () => {
+      try {
+        const newStats = await integrationService.getIntegratedStats();
+        setStats(newStats);
+        setIntegrationEnabled(integrationService.isIntegrationEnabled());
+      } catch (error) {
+        console.error('Failed to update stats:', error);
+      }
     };
 
     // Load settings from localStorage
@@ -80,19 +74,25 @@ export function IntegratedDashboard() {
 
     updateStats();
 
-    // Listen for updates from other components
-    const handleTaskUpdated = () => updateStats();
-    const handleGoalsUpdated = () => updateStats();
-    const handleHabitsUpdated = () => updateStats();
+    // Listen for standardized integration events
+    const handleIntegrationEvent = (event: CustomEvent<IntegrationEvent>) => {
+      console.log('Integration event received:', event.detail);
+      updateStats();
+    };
 
-    window.addEventListener('taskUpdated', handleTaskUpdated);
-    window.addEventListener('goalsUpdated', handleGoalsUpdated);
-    window.addEventListener('habitsUpdated', handleHabitsUpdated);
+    // Listen for legacy events for backward compatibility
+    const handleLegacyEvent = () => updateStats();
+
+    window.addEventListener('integration', handleIntegrationEvent as EventListener);
+    window.addEventListener('taskUpdated', handleLegacyEvent);
+    window.addEventListener('goalsUpdated', handleLegacyEvent);
+    window.addEventListener('habitsUpdated', handleLegacyEvent);
 
     return () => {
-      window.removeEventListener('taskUpdated', handleTaskUpdated);
-      window.removeEventListener('goalsUpdated', handleGoalsUpdated);
-      window.removeEventListener('habitsUpdated', handleHabitsUpdated);
+      window.removeEventListener('integration', handleIntegrationEvent as EventListener);
+      window.removeEventListener('taskUpdated', handleLegacyEvent);
+      window.removeEventListener('goalsUpdated', handleLegacyEvent);
+      window.removeEventListener('habitsUpdated', handleLegacyEvent);
     };
   }, []);
 
@@ -110,21 +110,9 @@ export function IntegratedDashboard() {
   const handleSettingsReset = () => {
     setSettings({
       dailyFocusGoal: 120,
-      dailyTaskGoal: 5,
-      dailyHabitGoal: 3,
       enablePomodoroIntegration: true,
-      enableTaskGoalIntegration: true,
-      enableHabitIntegration: true,
-      enableNotifications: true,
-      productivityThreshold: 80
+      enableNotifications: true
     });
-  };
-
-  const getProductivityLabel = (score: number) => {
-    if (score >= 80) return 'Xuất sắc';
-    if (score >= 60) return 'Tốt';
-    if (score >= 40) return 'Trung bình';
-    return 'Cần cải thiện';
   };
 
   const formatFocusTime = (minutes: number) => {
@@ -173,22 +161,22 @@ export function IntegratedDashboard() {
           </Alert>
         )}
 
-        {/* Main Productivity Score */}
-        <Card withBorder p="lg" radius="md" style={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' }}>
+        {/* Main Focus Time Display */}
+        <Card withBorder p="lg" radius="md" style={{ background: 'linear-gradient(135deg, #fa5252 0%, #e03131 100%)' }}>
           <Center>
             <Stack align="center" gap="md">
               <RingProgress
                 size={120}
                 thickness={8}
-                sections={[{ value: stats.productivityScore, color: 'white' }]}
+                sections={[{ value: Math.min((stats.todayFocusTime / settings.dailyFocusGoal) * 100, 100), color: 'white' }]}
                 label={
                   <Center>
                     <Stack align="center" gap={2}>
                       <Text size="xl" fw={700} c="white">
-                        {stats.productivityScore}
+                        {formatFocusTime(stats.todayFocusTime)}
                       </Text>
                       <Text size="xs" c="white" opacity={0.9}>
-                        Điểm
+                        Tập trung
                       </Text>
                     </Stack>
                   </Center>
@@ -196,106 +184,15 @@ export function IntegratedDashboard() {
               />
               <Stack align="center" gap={2}>
                 <Text size="lg" fw={600} c="white">
-                  Chỉ số Năng suất Hôm nay
+                  Thời gian Tập trung Hôm nay
                 </Text>
                 <Badge color="white" variant="light" size="lg">
-                  {getProductivityLabel(stats.productivityScore)}
+                  Mục tiêu: {Math.floor(settings.dailyFocusGoal / 60)}h{settings.dailyFocusGoal % 60 > 0 ? ` ${settings.dailyFocusGoal % 60}m` : ''}
                 </Badge>
               </Stack>
             </Stack>
           </Center>
         </Card>
-
-        {/* Detailed Stats */}
-        <SimpleGrid cols={{ base: 2, sm: 4 }} spacing="md">
-          {/* Focus Time */}
-          <Card withBorder p="md" radius="md">
-            <Stack align="center" gap="sm">
-              <Group>
-                <IconClock size={20} color="#fa5252" />
-                <Text size="sm" fw={500} c="dimmed">Tập trung</Text>
-              </Group>
-              <Text size="xl" fw={700} c="red">
-                {formatFocusTime(stats.todayFocusTime)}
-              </Text>
-              <Progress
-                value={Math.min((stats.todayFocusTime / settings.dailyFocusGoal) * 100, 100)}
-                color="red"
-                size="sm"
-                w="100%"
-              />
-              <Text size="xs" c="dimmed" ta="center">
-                Mục tiêu: {Math.floor(settings.dailyFocusGoal / 60)}h{settings.dailyFocusGoal % 60 > 0 ? ` ${settings.dailyFocusGoal % 60}m` : ''}
-              </Text>
-            </Stack>
-          </Card>
-
-          {/* Tasks Completed */}
-          <Card withBorder p="md" radius="md">
-            <Stack align="center" gap="sm">
-              <Group>
-                <IconCheck size={20} color="#40c057" />
-                <Text size="sm" fw={500} c="dimmed">Nhiệm vụ</Text>
-              </Group>
-              <Text size="xl" fw={700} c="green">
-                {stats.todayTasksCompleted}
-              </Text>
-              <Progress
-                value={Math.min((stats.todayTasksCompleted / settings.dailyTaskGoal) * 100, 100)}
-                color="green"
-                size="sm"
-                w="100%"
-              />
-              <Text size="xs" c="dimmed" ta="center">
-                Mục tiêu: {settings.dailyTaskGoal} nhiệm vụ
-              </Text>
-            </Stack>
-          </Card>
-
-          {/* Habits Completed */}
-          <Card withBorder p="md" radius="md">
-            <Stack align="center" gap="sm">
-              <Group>
-                <IconFlame size={20} color="#fd7e14" />
-                <Text size="sm" fw={500} c="dimmed">Thói quen</Text>
-              </Group>
-              <Text size="xl" fw={700} c="orange">
-                {stats.todayHabitsCompleted}
-              </Text>
-              <Progress
-                value={Math.min((stats.todayHabitsCompleted / settings.dailyHabitGoal) * 100, 100)}
-                color="orange"
-                size="sm"
-                w="100%"
-              />
-              <Text size="xs" c="dimmed" ta="center">
-                Mục tiêu: {settings.dailyHabitGoal} thói quen
-              </Text>
-            </Stack>
-          </Card>
-
-          {/* Weekly Goals */}
-          <Card withBorder p="md" radius="md">
-            <Stack align="center" gap="sm">
-              <Group>
-                <IconTrophy size={20} color="#be4bdb" />
-                <Text size="sm" fw={500} c="dimmed">Mục tiêu</Text>
-              </Group>
-              <Text size="xl" fw={700} c="purple">
-                {Math.round(stats.weeklyGoalProgress)}%
-              </Text>
-              <Progress
-                value={stats.weeklyGoalProgress}
-                color="purple"
-                size="sm"
-                w="100%"
-              />
-              <Text size="xs" c="dimmed" ta="center">
-                Tiến độ tuần này
-              </Text>
-            </Stack>
-          </Card>
-        </SimpleGrid>
 
         {/* Integration Features */}
         <Card withBorder p="md" radius="md" bg="gray.0">
@@ -322,34 +219,10 @@ export function IntegratedDashboard() {
                 <Stack gap="xs">
                   <Group>
                     <IconCheck size={16} color="green" />
-                    <Text size="sm">Nhiệm vụ ↔ Mục tiêu</Text>
+                    <Text size="sm">Theo dõi Tập trung</Text>
                   </Group>
                   <Text size="xs" c="dimmed" pl="md">
-                    Hoàn thành nhiệm vụ tự động cập nhật tiến độ mục tiêu học tập
-                  </Text>
-                </Stack>
-              </Grid.Col>
-              
-              <Grid.Col span={{ base: 12, sm: 6 }}>
-                <Stack gap="xs">
-                  <Group>
-                    <IconCheck size={16} color="green" />
-                    <Text size="sm">Pomodoro ↔ Thói quen</Text>
-                  </Group>
-                  <Text size="xs" c="dimmed" pl="md">
-                    Hoàn thành phiên tập trung đánh dấu thói quen năng suất
-                  </Text>
-                </Stack>
-              </Grid.Col>
-              
-              <Grid.Col span={{ base: 12, sm: 6 }}>
-                <Stack gap="xs">
-                  <Group>
-                    <IconCheck size={16} color="green" />
-                    <Text size="sm">Thống kê Tổng hợp</Text>
-                  </Group>
-                  <Text size="xs" c="dimmed" pl="md">
-                    Chỉ số năng suất tổng hợp từ tất cả hoạt động
+                    Tổng hợp thời gian tập trung từ các phiên Pomodoro
                   </Text>
                 </Stack>
               </Grid.Col>
@@ -357,21 +230,21 @@ export function IntegratedDashboard() {
           </Stack>
         </Card>
 
-        {/* Tips for Better Integration */}
+        {/* Tips for Better Focus */}
         <Alert icon={<IconTarget size={16} />} color="blue" variant="light">
           <Stack gap="xs">
-            <Text fw={500} size="sm">Mẹo để tối đa hóa tích hợp:</Text>
+            <Text fw={500} size="sm">Mẹo để tối đa hóa thời gian tập trung:</Text>
             <Text size="xs">
               • Luôn chọn nhiệm vụ cụ thể khi bắt đầu Pomodoro Timer
             </Text>
             <Text size="xs">
-              • Tạo mục tiêu hàng tuần cho số giờ học và số nhiệm vụ hoàn thành
+              • Đặt mục tiêu thời gian tập trung hàng ngày (mặc định 2 giờ)
             </Text>
             <Text size="xs">
-              • Thiết lập thói quen "Học tập" để theo dõi chuỗi ngày học liên tục
+              • Tắt thông báo và tìm môi trường yên tĩnh trong phiên Pomodoro
             </Text>
             <Text size="xs">
-              • Xem lại chỉ số năng suất hàng ngày để điều chỉnh kế hoạch
+              • Xem lại thống kê hàng ngày để điều chỉnh kế hoạch học tập
             </Text>
           </Stack>
         </Alert>
@@ -413,26 +286,6 @@ export function IntegratedDashboard() {
                 step={15}
                 leftSection={<IconClock size={16} />}
               />
-              
-              <NumberInput
-                label="Số nhiệm vụ hoàn thành"
-                description="Mục tiêu số nhiệm vụ hoàn thành mỗi ngày"
-                value={settings.dailyTaskGoal}
-                onChange={(value) => setSettings(prev => ({ ...prev, dailyTaskGoal: Number(value) || 5 }))}
-                min={1}
-                max={20}
-                leftSection={<IconCheck size={16} />}
-              />
-              
-              <NumberInput
-                label="Số thói quen thực hiện"
-                description="Mục tiêu số thói quen thực hiện mỗi ngày"
-                value={settings.dailyHabitGoal}
-                onChange={(value) => setSettings(prev => ({ ...prev, dailyHabitGoal: Number(value) || 3 }))}
-                min={1}
-                max={10}
-                leftSection={<IconFlame size={16} />}
-              />
             </Stack>
 
             <Divider />
@@ -446,7 +299,7 @@ export function IntegratedDashboard() {
               
               <Checkbox
                 label="Tích hợp Pomodoro Timer"
-                description="Tự động liên kết timer với nhiệm vụ"
+                description="Tự động theo dõi thời gian tập trung từ Pomodoro"
                 checked={settings.enablePomodoroIntegration}
                 onChange={(event) => setSettings(prev => ({ 
                   ...prev, 
@@ -455,28 +308,8 @@ export function IntegratedDashboard() {
               />
               
               <Checkbox
-                label="Tích hợp Mục tiêu"
-                description="Cập nhật tiến độ mục tiêu khi hoàn thành nhiệm vụ"
-                checked={settings.enableTaskGoalIntegration}
-                onChange={(event) => setSettings(prev => ({ 
-                  ...prev, 
-                  enableTaskGoalIntegration: event.currentTarget.checked 
-                }))}
-              />
-              
-              <Checkbox
-                label="Tích hợp Thói quen"
-                description="Đánh dấu thói quen khi hoàn thành hoạt động"
-                checked={settings.enableHabitIntegration}
-                onChange={(event) => setSettings(prev => ({ 
-                  ...prev, 
-                  enableHabitIntegration: event.currentTarget.checked 
-                }))}
-              />
-              
-              <Checkbox
                 label="Thông báo"
-                description="Nhận thông báo về tiến độ và thành tích"
+                description="Nhận thông báo về thời gian tập trung và tiến độ"
                 checked={settings.enableNotifications}
                 onChange={(event) => setSettings(prev => ({ 
                   ...prev, 
@@ -487,42 +320,16 @@ export function IntegratedDashboard() {
 
             <Divider />
 
-            {/* Productivity Settings */}
+            {/* Advanced Settings */}
             <Stack gap="md">
               <Group>
-                <IconChartLine size={18} color="#fd7e14" />
-                <Text fw={500} size="sm">Chỉ số Năng suất</Text>
+                <IconSettings size={18} color="#868e96" />
+                <Text fw={500} size="sm">Cài đặt Khác</Text>
               </Group>
               
-              <Stack gap="sm">
-                <Group justify="space-between">
-                  <Text size="sm">Ngưỡng "Xuất sắc"</Text>
-                  <Badge color="blue" variant="light">
-                    {settings.productivityThreshold}%
-                  </Badge>
-                </Group>
-                
-                <Box pt="xs" pb="md">
-                  <Slider
-                    value={settings.productivityThreshold}
-                    onChange={(value) => setSettings(prev => ({ ...prev, productivityThreshold: value }))}
-                    min={50}
-                    max={100}
-                    step={5}
-                    marks={[
-                      { value: 50, label: '50%' },
-                      { value: 75, label: '75%' },
-                      { value: 100, label: '100%' }
-                    ]}
-                    size="md"
-                    color="blue"
-                  />
-                </Box>
-                
-                <Text size="xs" c="dimmed" ta="center">
-                  Điểm số cần đạt để được đánh giá "Xuất sắc"
-                </Text>
-              </Stack>
+              <Text size="xs" c="dimmed" ta="center">
+                Tập trung vào việc theo dõi thời gian học tập hiệu quả
+              </Text>
             </Stack>
 
             <Divider />

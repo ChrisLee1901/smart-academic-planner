@@ -17,7 +17,8 @@ import {
   Box,
   Progress,
   SimpleGrid,
-  LoadingOverlay
+  LoadingOverlay,
+  Tooltip
 } from '@mantine/core';
 import { 
   IconFlame,
@@ -25,13 +26,14 @@ import {
   IconEdit,
   IconTrash,
   IconCheck,
-  IconX
+  IconX,
+  IconCalendar
 } from '@tabler/icons-react';
 import { useForm } from '@mantine/form';
 import { notifications } from '@mantine/notifications';
 import dayjs from 'dayjs';
 import { useHabitStore } from '../store/habitStore';
-import type { Habit } from '../types/index';
+import { type Habit } from '../services/databaseService';
 
 const HABIT_ICONS = [
   { value: '📚', label: 'Đọc sách' },
@@ -62,6 +64,7 @@ export function HabitTracker() {
     deleteHabit,
     toggleHabitCompletion,
     loadHabits,
+    loadRecords,
     clearError
   } = useHabitStore();
 
@@ -80,10 +83,20 @@ export function HabitTracker() {
     }
   });
 
-  // Load habits from database
+  // Load habits and records from database
   useEffect(() => {
-    loadHabits();
-  }, [loadHabits]);
+    const initializeData = async () => {
+      await loadHabits();
+      await loadRecords();
+    };
+    
+    initializeData();
+  }, [loadHabits, loadRecords]);
+
+  // Debug log for data changes
+  useEffect(() => {
+    console.log('HabitTracker - Habits:', habits.length, 'Records:', records.length);
+  }, [habits, records]);
 
   const handleSubmit = async (values: typeof form.values) => {
     try {
@@ -201,11 +214,12 @@ export function HabitTracker() {
   };
 
   const getWeeklyProgress = (habitId: string): number => {
-    const startOfWeek = dayjs().startOf('week');
+    const today = dayjs();
     const completedDays = [];
     
-    for (let i = 0; i < 7; i++) {
-      const checkDate = startOfWeek.add(i, 'day');
+    // Calculate for last 7 days (same as calendar display)
+    for (let i = 6; i >= 0; i--) {
+      const checkDate = today.subtract(i, 'day');
       const dateStr = checkDate.format('YYYY-MM-DD');
       const record = records.find(r => r.habitId === habitId && r.date === dateStr);
       
@@ -231,25 +245,59 @@ export function HabitTracker() {
       const date = today.subtract(i, 'day');
       const dateStr = date.format('YYYY-MM-DD');
       const record = records.find(r => r.habitId === habitId && r.date === dateStr);
+      const isToday = date.isSame(today, 'day');
+      const isCompleted = record?.completed || false;
       
       days.push(
-        <Box
+        <Tooltip
           key={dateStr}
-          style={{
-            width: 20,
-            height: 20,
-            borderRadius: 4,
-            backgroundColor: record?.completed ? '#40c057' : '#e9ecef',
-            cursor: 'pointer',
-            transition: 'all 0.2s'
-          }}
-          onClick={() => handleToggleCompletion(habitId, dateStr)}
-          title={`${date.format('DD/MM')} - ${record?.completed ? 'Đã hoàn thành' : 'Chưa hoàn thành'}`}
-        />
+          label={`${date.format('DD/MM')} - ${isCompleted ? 'Đã hoàn thành' : 'Chưa hoàn thành'}`}
+        >
+          <Box
+            style={{
+              width: 22,
+              height: 22,
+              borderRadius: 6,
+              backgroundColor: isCompleted ? '#40c057' : '#e9ecef',
+              cursor: 'pointer',
+              transition: 'all 0.2s ease',
+              border: isToday ? '2px solid #228be6' : '1px solid #dee2e6',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              position: 'relative'
+            }}
+            onClick={() => {
+              console.log(`Clicking ${dateStr} for habit ${habitId}, current completed: ${isCompleted}`);
+              handleToggleCompletion(habitId, dateStr);
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = 'scale(1.1)';
+              e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.1)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = 'scale(1)';
+              e.currentTarget.style.boxShadow = 'none';
+            }}
+          >
+            {isCompleted && <IconCheck size={12} color="white" />}
+            {isToday && (
+              <div style={{
+                position: 'absolute',
+                bottom: '-2px',
+                right: '-2px',
+                width: '6px',
+                height: '6px',
+                borderRadius: '50%',
+                backgroundColor: '#228be6'
+              }} />
+            )}
+          </Box>
+        </Tooltip>
       );
     }
     
-    return <Group gap={4}>{days}</Group>;
+    return days;
   };
 
   return (
@@ -265,15 +313,49 @@ export function HabitTracker() {
         )}
 
         <Group justify="space-between">
-          <Title order={3}>Theo dõi thói quen</Title>
+          <Group>
+            <IconCalendar size={24} color="#fa5252" />
+            <Title order={3}>Theo dõi thói quen</Title>
+          </Group>
           <Button 
             leftSection={<IconPlus size={16} />}
             onClick={() => setIsFormOpen(true)}
             variant="light"
+            color="blue"
           >
             Thêm thói quen
           </Button>
         </Group>
+
+        {/* Summary Stats */}
+        <SimpleGrid cols={{ base: 2, sm: 4 }} spacing="md">
+          <Card withBorder p="sm" radius="sm" ta="center">
+            <Text size="xl" fw={700} c="blue">{habits.filter(h => h.isActive).length}</Text>
+            <Text size="sm" c="dimmed">Thói quen đang theo dõi</Text>
+          </Card>
+          <Card withBorder p="sm" radius="sm" ta="center">
+            <Text size="xl" fw={700} c="green">
+              {habits.filter(h => h.isActive && isHabitCompletedToday(h.id)).length}
+            </Text>
+            <Text size="sm" c="dimmed">Hoàn thành hôm nay</Text>
+          </Card>
+          <Card withBorder p="sm" radius="sm" ta="center">
+            <Text size="xl" fw={700} c="orange">
+              {Math.round(habits.length > 0 ? 
+                habits.filter(h => h.isActive).reduce((sum, h) => sum + getHabitStreak(h.id), 0) / habits.filter(h => h.isActive).length : 0
+              )}
+            </Text>
+            <Text size="sm" c="dimmed">Chuỗi TB (ngày)</Text>
+          </Card>
+          <Card withBorder p="sm" radius="sm" ta="center">
+            <Text size="xl" fw={700} c="purple">
+              {Math.round(habits.length > 0 ? 
+                habits.filter(h => h.isActive).reduce((sum, h) => sum + (getWeeklyProgress(h.id) / 7 * 100), 0) / habits.filter(h => h.isActive).length : 0
+              )}%
+            </Text>
+            <Text size="sm" c="dimmed">7 ngày gần đây</Text>
+          </Card>
+        </SimpleGrid>
 
         {habits.length === 0 ? (
           <Text ta="center" c="dimmed" py="xl">
@@ -324,7 +406,7 @@ export function HabitTracker() {
 
                     <div>
                       <Group justify="space-between" mb="xs">
-                        <Text size="xs" c="dimmed">Tuần này: {weeklyProgress}/7</Text>
+                        <Text size="xs" c="dimmed">7 ngày gần đây: {weeklyProgress}/7</Text>
                         <Text size="xs" c="dimmed">{progressPercentage.toFixed(0)}%</Text>
                       </Group>
                       <Progress 
@@ -335,26 +417,35 @@ export function HabitTracker() {
                       />
                     </div>
 
-                    <Group justify="space-between">
+                    <Group justify="space-between" align="center">
                       <Group gap="xs">
                         <IconFlame size={16} color="#fd7e14" />
                         <Text size="sm" fw={500}>{streak} ngày</Text>
                       </Group>
                       
-                      <Button
-                        size="xs"
-                        variant={isCompletedToday ? "filled" : "light"}
-                        color={isCompletedToday ? "green" : habit.color}
-                        leftSection={isCompletedToday ? <IconCheck size={14} /> : <IconX size={14} />}
-                        onClick={() => handleToggleCompletion(habit.id)}
-                      >
-                        {isCompletedToday ? "Hoàn thành" : "Chưa xong"}
-                      </Button>
+                      <Tooltip label={isCompletedToday ? "Bỏ đánh dấu hoàn thành hôm nay" : "Đánh dấu hoàn thành hôm nay"}>
+                        <Button
+                          size="xs"
+                          variant={isCompletedToday ? "filled" : "outline"}
+                          color={isCompletedToday ? "green" : "blue"}
+                          leftSection={isCompletedToday ? <IconCheck size={14} /> : <IconX size={14} />}
+                          onClick={() => handleToggleCompletion(habit.id)}
+                          style={{
+                            minWidth: '120px'
+                          }}
+                        >
+                          {isCompletedToday ? "✓ Hôm nay" : "○ Hôm nay"}
+                        </Button>
+                      </Tooltip>
                     </Group>
 
                     <div>
-                      <Text size="xs" c="dimmed" mb="xs">7 ngày gần đây:</Text>
-                      {renderHabitCalendar(habit.id)}
+                      <Text size="xs" c="dimmed" mb="xs">
+                        7 ngày gần đây: ({weeklyProgress}/7 ngày)
+                      </Text>
+                      <Group gap={4} justify="center">
+                        {renderHabitCalendar(habit.id)}
+                      </Group>
                     </div>
                   </Stack>
                 </Card>

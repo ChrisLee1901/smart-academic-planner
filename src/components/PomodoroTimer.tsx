@@ -64,30 +64,47 @@ export function PomodoroTimer() {
   const intervalRef = useRef<number | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
-  // Load available tasks from event store
+  // Load available tasks from integration service (unified data source)
   useEffect(() => {
-    const loadTasks = () => {
-      // Use events from store instead of integrationService
-      const tasks = events
-        .filter(event => event.status !== 'done')
-        .map(event => ({
-          value: event.id,
-          label: `${event.title} ${event.course ? `(${event.course})` : ''}`,
-          estimatedTime: event.estimatedTime
-        }));
-      setAvailableTasks(tasks);
+    const loadTasks = async () => {
+      try {
+        const tasks = await integrationService.getAvailableTasks();
+        setAvailableTasks(tasks);
+      } catch (error) {
+        console.error('Failed to load available tasks:', error);
+        // Fallback to store data if integration service fails
+        const fallbackTasks = events
+          .filter(event => event.status !== 'done')
+          .map(event => ({
+            value: event.id,
+            label: `${event.title} ${event.course ? `(${event.course})` : ''}`,
+            estimatedTime: event.estimatedTime
+          }));
+        setAvailableTasks(fallbackTasks);
+      }
     };
 
     loadTasks();
     
-    // Listen for task updates
-    const handleTaskUpdated = () => loadTasks();
-    window.addEventListener('taskUpdated', handleTaskUpdated);
+    // Listen for integration events instead of taskUpdated
+    const handleIntegrationEvent = (event: CustomEvent) => {
+      const { type } = event.detail;
+      if (type === 'task') {
+        loadTasks();
+      }
+    };
+
+    // Listen for legacy events for backward compatibility
+    const handleLegacyEvent = () => loadTasks();
+    
+    window.addEventListener('integration', handleIntegrationEvent as EventListener);
+    window.addEventListener('taskUpdated', handleLegacyEvent);
     
     return () => {
-      window.removeEventListener('taskUpdated', handleTaskUpdated);
+      window.removeEventListener('integration', handleIntegrationEvent as EventListener);
+      window.removeEventListener('taskUpdated', handleLegacyEvent);
     };
-  }, [events]); // Depend on events from store
+  }, [events]); // Keep events dependency for fallback
 
   // Initialize audio
   useEffect(() => {
