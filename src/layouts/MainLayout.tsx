@@ -27,6 +27,7 @@ import { FloatingActionButton } from '../components/FloatingActionButton';
 import { FloatingAIButton } from '../components/FloatingAIButton';
 import { AIStudyAssistant } from '../components/AIStudyAssistant';
 import { geminiService } from '../services/geminiService';
+import { useEventStore } from '../store/eventStore';
 import type { AcademicEvent } from '../types';
 
 interface MainLayoutProps {
@@ -39,11 +40,17 @@ export function MainLayout({ children, activeTab, onTabChange }: MainLayoutProps
   const [opened, { toggle }] = useDisclosure();
   const [hoveredNav, setHoveredNav] = useState<string | null>(null);
   const [isAIOpen, setIsAIOpen] = useState(false);
+  const { addEvent } = useEventStore();
 
   const handleQuickAdd = async (eventData: AcademicEvent) => {
-    // This will just navigate to dashboard where user can add tasks
-    onTabChange('dashboard');
-    console.log('Quick add:', eventData); // To use the parameter
+    try {
+      await addEvent(eventData);
+      console.log('Quick add event successful:', eventData);
+      // Navigate to dashboard to see the newly added event
+      onTabChange('dashboard');
+    } catch (error) {
+      console.error('Failed to quick add event:', error);
+    }
   };
 
   const navLinks = [
