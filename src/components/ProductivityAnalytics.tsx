@@ -148,14 +148,31 @@ export function ProductivityAnalytics() {
     const days = parseInt(timeRange);
     const stats: DailyStats[] = [];
 
+    console.log('Calculating daily stats for', days, 'days');
+    console.log('Total events:', events.length);
+
     for (let i = days - 1; i >= 0; i--) {
       const date = dayjs().subtract(i, 'day');
       const dayEvents = events.filter(e => dayjs(e.startTime).isSame(date, 'day'));
       const completedEvents = dayEvents.filter(e => e.status === 'done');
       
-      const timeSpent = completedEvents.reduce((sum, e) => 
-        sum + (e.actualTime || e.estimatedTime || 0), 0
-      );
+      console.log(`Date ${date.format('MM/DD')}:`, {
+        totalEvents: dayEvents.length,
+        completedEvents: completedEvents.length,
+        events: completedEvents.map(e => ({
+          title: e.title,
+          actualTime: e.actualTime,
+          estimatedTime: e.estimatedTime
+        }))
+      });
+      
+      const timeSpent = completedEvents.reduce((sum, e) => {
+        const time = e.actualTime || e.estimatedTime || 1; // Default to 1 hour if no time specified
+        console.log(`Event "${e.title}": actualTime=${e.actualTime}, estimatedTime=${e.estimatedTime}, using=${time}`);
+        return sum + time;
+      }, 0);
+
+      console.log(`Total time spent on ${date.format('MM/DD')}: ${timeSpent} hours`);
 
       stats.push({
         date: date.format('MM/DD'),
@@ -166,6 +183,7 @@ export function ProductivityAnalytics() {
       });
     }
 
+    console.log('Final daily stats:', stats);
     return stats;
   }, [events, timeRange]);
 

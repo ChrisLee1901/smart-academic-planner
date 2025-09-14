@@ -65,6 +65,24 @@ class AdvancedAIService {
         startTime = this.parseDateTime(extractedInfo.date, extractedInfo.time);
       }
 
+      // Xử lý thời gian ước tính từ Gemini response
+      let estimatedTime = 1; // Default 1 hour
+      if (extractedInfo.estimatedTime) {
+        estimatedTime = parseFloat(extractedInfo.estimatedTime);
+      } else {
+        // Ước tính dựa trên type và title
+        const title = extractedInfo.title.toLowerCase();
+        if (title.includes('học') || title.includes('đọc') || title.includes('nghiên cứu')) {
+          estimatedTime = 2;
+        } else if (title.includes('bài tập') || title.includes('assignment')) {
+          estimatedTime = 1.5;
+        } else if (title.includes('dự án') || title.includes('project')) {
+          estimatedTime = 3;
+        } else if (title.includes('thi') || title.includes('exam')) {
+          estimatedTime = 2;
+        }
+      }
+
       return {
         confidence: 0.8,
         event: {
@@ -73,7 +91,8 @@ class AdvancedAIService {
           startTime,
           status: 'todo' as const,
           priority: extractedInfo.priority as AcademicEvent['priority'] || 'medium',
-          course: extractedInfo.course
+          course: extractedInfo.course,
+          estimatedTime
         }
       };
 
@@ -99,11 +118,12 @@ QUAN TRỌNG về thời gian:
 Trả lời bằng JSON chính xác:
 {
   "title": "tên nhiệm vụ rõ ràng",
-  "type": "deadline/class/project/meeting/exam/personal",
+  "type": "deadline/class/project/personal",
   "date": "ngày cụ thể hoặc cụm từ thời gian (ưu tiên ngày cụ thể)",
   "time": "giờ phút cụ thể",
   "priority": "high/medium/low",
   "course": "tên môn học nếu có",
+  "estimatedTime": "số giờ ước tính (1-8)",
   "confidence": 0.0-1.0,
   "error": "lỗi nếu không đủ thông tin",
   "suggestions": ["gợi ý cụ thể"]
@@ -354,6 +374,28 @@ Câu cần phân tích: "${input}"`;
     if (text.includes('gấp') || text.includes('quan trọng')) priority = 'high';
     else if (text.includes('không gấp') || text.includes('thường')) priority = 'low';
 
+    // Ước tính thời gian dựa trên loại nhiệm vụ và nội dung
+    let estimatedTime = 1; // Default 1 hour
+    
+    // Tìm số giờ trong text trước
+    const hourMatch = text.match(/(\d+)\s*giờ/);
+    if (hourMatch) {
+      estimatedTime = parseInt(hourMatch[1]);
+    } else {
+      // Ước tính dựa trên loại và nội dung
+      if (text.includes('học') || text.includes('đọc') || text.includes('nghiên cứu')) {
+        estimatedTime = 2;
+      } else if (text.includes('bài tập') || text.includes('assignment')) {
+        estimatedTime = 1.5;
+      } else if (text.includes('dự án') || text.includes('project')) {
+        estimatedTime = 3;
+      } else if (text.includes('thi') || text.includes('exam')) {
+        estimatedTime = 2;
+      } else if (text.includes('họp') || text.includes('meeting')) {
+        estimatedTime = 1;
+      }
+    }
+
     return {
       confidence: 0.8,
       event: {
@@ -361,7 +403,8 @@ Câu cần phân tích: "${input}"`;
         type: eventType,
         startTime: parsedDate,
         status: 'todo' as const,
-        priority
+        priority,
+        estimatedTime
       }
     };
   }
