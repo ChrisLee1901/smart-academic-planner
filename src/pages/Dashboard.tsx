@@ -25,6 +25,7 @@ import {
 } from '@tabler/icons-react';
 import { EventCard } from '../components/EventCard';
 import { KanbanColumn } from '../components/KanbanColumn';
+import { TaskDetailPanel } from '../components/TaskDetailPanel';
 import { StudyScheduleGenerator } from '../components/StudyScheduleGenerator';
 import { PomodoroTimer } from '../components/PomodoroTimer';
 import { GoalTracker } from '../components/GoalTracker';
@@ -45,6 +46,8 @@ export function Dashboard({ onTabChange }: DashboardProps) {
   const { events, addEvent, updateEvent, deleteEvent } = useEventStore();
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingEvent, setEditingEvent] = useState<AcademicEvent | undefined>();
+  const [selectedTask, setSelectedTask] = useState<AcademicEvent | null>(null);
+  const [isPanelVisible, setIsPanelVisible] = useState(true);
 
   const handleGoToAnalytics = () => {
     onTabChange('analytics');
@@ -352,63 +355,109 @@ export function Dashboard({ onTabChange }: DashboardProps) {
           </Group>
         </Paper>
 
-        {/* Kanban Board */}
+        {/* Kanban Board with Detail Panel */}
         <Stack gap="md">
           <Group justify="space-between" align="center">
             <Title order={2}>📋 Bảng quản lý nhiệm vụ</Title>
-            <Button
-              leftSection={<IconCalendarEvent size={16} />}
-              variant="filled"
-              color="blue"
-              onClick={() => setIsFormOpen(true)}
-              size="sm"
-            >
-              ➕ Thêm nhiệm vụ mới
-            </Button>
+            <Group gap="sm">
+              {!isPanelVisible && (
+                <Button
+                  size="sm"
+                  variant="light"
+                  color="orange"
+                  onClick={() => {
+                    setSelectedTask(null);
+                    setIsPanelVisible(true);
+                  }}
+                  leftSection={<IconCalendarEvent size={16} />}
+                >
+                  📝 Mở Daily Note
+                </Button>
+              )}
+              <Button
+                leftSection={<IconCalendarEvent size={16} />}
+                variant="filled"
+                color="blue"
+                onClick={() => setIsFormOpen(true)}
+                size="sm"
+              >
+                ➕ Thêm nhiệm vụ mới
+              </Button>
+            </Group>
           </Group>
 
           <Grid gutter="md">
-            <Grid.Col span={{ base: 12, sm: 4 }}>
-              <KanbanColumn
-                title="📝 Cần làm"
-                status="todo"
-                events={events.filter(e => e.status === 'todo')}
-                onEdit={handleEditEvent}
-                onDelete={handleDeleteEvent}
-                onStatusChange={handleStatusChange}
-                onAddEvent={() => setIsFormOpen(true)}
-                onQuickAdd={handleQuickAdd}
-                color="blue"
-              />
+            {/* Kanban Columns */}
+            <Grid.Col span={{ base: 12, lg: isPanelVisible ? 8 : 12 }}>
+              <Grid gutter="md">
+                <Grid.Col span={{ base: 12, sm: 4 }}>
+                  <KanbanColumn
+                    title="📝 Cần làm"
+                    status="todo"
+                    events={events.filter(e => e.status === 'todo')}
+                    onEdit={handleEditEvent}
+                    onDelete={handleDeleteEvent}
+                    onStatusChange={handleStatusChange}
+                    onAddEvent={() => setIsFormOpen(true)}
+                    onQuickAdd={handleQuickAdd}
+                    onTaskClick={(task) => {
+                      setSelectedTask(task);
+                      setIsPanelVisible(true);
+                    }}
+                    color="blue"
+                  />
+                </Grid.Col>
+                
+                <Grid.Col span={{ base: 12, sm: 4 }}>
+                  <KanbanColumn
+                    title="⚡ Đang làm"
+                    status="in-progress"
+                    events={events.filter(e => e.status === 'in-progress')}
+                    onEdit={handleEditEvent}
+                    onDelete={handleDeleteEvent}
+                    onStatusChange={handleStatusChange}
+                    onAddEvent={() => setIsFormOpen(true)}
+                    onQuickAdd={handleQuickAdd}
+                    onTaskClick={(task) => {
+                      setSelectedTask(task);
+                      setIsPanelVisible(true);
+                    }}
+                    color="yellow"
+                  />
+                </Grid.Col>
+                
+                <Grid.Col span={{ base: 12, sm: 4 }}>
+                  <KanbanColumn
+                    title="✅ Hoàn thành"
+                    status="done"
+                    events={events.filter(e => e.status === 'done')}
+                    onEdit={handleEditEvent}
+                    onDelete={handleDeleteEvent}
+                    onStatusChange={handleStatusChange}
+                    onAddEvent={() => setIsFormOpen(true)}
+                    onQuickAdd={handleQuickAdd}
+                    onTaskClick={(task) => {
+                      setSelectedTask(task);
+                      setIsPanelVisible(true);
+                    }}
+                    color="green"
+                  />
+                </Grid.Col>
+              </Grid>
             </Grid.Col>
-            
-            <Grid.Col span={{ base: 12, sm: 4 }}>
-              <KanbanColumn
-                title="⚡ Đang làm"
-                status="in-progress"
-                events={events.filter(e => e.status === 'in-progress')}
-                onEdit={handleEditEvent}
-                onDelete={handleDeleteEvent}
-                onStatusChange={handleStatusChange}
-                onAddEvent={() => setIsFormOpen(true)}
-                onQuickAdd={handleQuickAdd}
-                color="yellow"
-              />
-            </Grid.Col>
-            
-            <Grid.Col span={{ base: 12, sm: 4 }}>
-              <KanbanColumn
-                title="✅ Hoàn thành"
-                status="done"
-                events={events.filter(e => e.status === 'done')}
-                onEdit={handleEditEvent}
-                onDelete={handleDeleteEvent}
-                onStatusChange={handleStatusChange}
-                onAddEvent={() => setIsFormOpen(true)}
-                onQuickAdd={handleQuickAdd}
-                color="green"
-              />
-            </Grid.Col>
+
+            {/* Task Detail Panel */}
+            {isPanelVisible && (
+              <Grid.Col span={{ base: 12, lg: 4 }}>
+                <TaskDetailPanel
+                  selectedTask={selectedTask}
+                  onEdit={handleEditEvent}
+                  onDelete={handleDeleteEvent}
+                  onStatusChange={handleStatusChange}
+                  onClose={() => setIsPanelVisible(false)}
+                />
+              </Grid.Col>
+            )}
           </Grid>
         </Stack>
 

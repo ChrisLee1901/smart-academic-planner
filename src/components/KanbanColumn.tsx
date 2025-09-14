@@ -14,7 +14,8 @@ interface KanbanColumnProps {
   onDelete: (eventId: string) => void;
   onStatusChange: (eventId: string, status: AcademicEvent['status']) => void;
   onAddEvent?: () => void;
-  onQuickAdd?: (event: AcademicEvent) => void; // New prop for quick add
+  onQuickAdd?: (event: AcademicEvent) => void;
+  onTaskClick?: (task: AcademicEvent) => void;
   color: string;
 }
 
@@ -27,6 +28,7 @@ export function KanbanColumn({
   onStatusChange,
   onAddEvent,
   onQuickAdd,
+  onTaskClick,
   color
 }: KanbanColumnProps) {
   const [filterMenuOpened, setFilterMenuOpened] = useState(false);
@@ -224,8 +226,12 @@ export function KanbanColumn({
                 onDelete={onDelete}
                 onStatusChange={onStatusChange}
                 onClick={(event) => {
-                  setSelectedEvent(event);
-                  setDetailModalOpened(true);
+                  if (onTaskClick) {
+                    onTaskClick(event);
+                  } else {
+                    setSelectedEvent(event);
+                    setDetailModalOpened(true);
+                  }
                 }}
               />
             ))
