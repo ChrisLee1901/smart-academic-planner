@@ -19,14 +19,19 @@ import {
   CopyButton,
   Tooltip
 } from '@mantine/core';
-import { IconBrain, IconSend, IconBulb, IconDownload, IconCopy, IconCheck, IconAlertCircle } from '@tabler/icons-react';
+import { IconBrain, IconSend, IconBulb, IconDownload, IconCopy, IconCheck, IconAlertCircle, IconCalendarEvent } from '@tabler/icons-react';
+import { notifications } from '@mantine/notifications';
 import { useEventStore } from '../store/eventStore';
 import { aiService } from '../services/aiService';
 import { analyticsService } from '../services/analyticsService';
 import { calendarService } from '../services/calendarService';
 import { generateId } from '../utils/dateUtils';
 
-export function AIAssistantView() {
+interface AIAssistantViewProps {
+  onTabChange?: (tab: string) => void;
+}
+
+export function AIAssistantView({ onTabChange }: AIAssistantViewProps = {}) {
   const [input, setInput] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
   const [lastResult, setLastResult] = useState<any>(null);
@@ -34,6 +39,76 @@ export function AIAssistantView() {
   const [exportData, setExportData] = useState('');
   
   const { events, addEvent } = useEventStore();
+
+  const handleCreateInProgress = async () => {
+    if (!input.trim()) return;
+    
+    setIsProcessing(true);
+    setLastResult(null);
+    
+    try {
+      const result = await aiService.parseNaturalLanguage(input);
+      
+      if (result.error) {
+        setLastResult(result);
+        return;
+      }
+      
+      if (result.confidence > 0.6 && result.event.title) {
+        const newEvent = {
+          id: generateId(),
+          title: result.event.title,
+          type: result.event.type || 'personal',
+          startTime: result.event.startTime || new Date(),
+          status: 'in-progress' as const, // Set to in-progress instead of todo
+          priority: result.event.priority || 'medium',
+          course: result.event.course,
+          estimatedTime: result.event.estimatedTime
+        };
+        
+        const conflicts = aiService.detectConflicts(newEvent, events);
+        if (conflicts.length === 0) {
+          addEvent(newEvent);
+          setInput('');
+          
+          // Show success notification popup for in-progress task
+          notifications.show({
+            id: 'task-created-in-progress',
+            title: '✅ Tạo task "Đang làm" thành công!',
+            message: `"${newEvent.title}" đã được thêm vào bảng Đang làm. Click để xem trong Kanban!`,
+            color: 'blue',
+            autoClose: 8000,
+            onClick: () => {
+              onTabChange?.('dashboard');
+              notifications.hide('task-created-in-progress');
+            },
+            style: { cursor: 'pointer' }
+          });
+        } else {
+          setLastResult({
+            ...result,
+            conflicts,
+            event: newEvent
+          });
+        }
+      }
+      
+    } catch (error) {
+      console.error('AI processing error:', error);
+      setLastResult({
+        confidence: 0,
+        event: {},
+        error: "Có lỗi xảy ra khi xử lý yêu cầu. Vui lòng thử lại.",
+        suggestions: [
+          'Kiểm tra kết nối mạng',
+          'Thử lại với câu lệnh đơn giản hơn',
+          'Liên hệ hỗ trợ nếu vấn đề tiếp tục'
+        ]
+      });
+    } finally {
+      setIsProcessing(false);
+    }
+  };
 
   const handleProcess = async () => {
     if (!input.trim()) return;
@@ -68,6 +143,20 @@ export function AIAssistantView() {
         if (conflicts.length === 0) {
           addEvent(newEvent);
           setInput('');
+          
+          // Show success notification popup
+          notifications.show({
+            id: 'task-created-success',
+            title: '✅ Tạo task thành công!',
+            message: `"${newEvent.title}" đã được thêm vào danh sách Todo. Click để xem trong Kanban!`,
+            color: 'green',
+            autoClose: 8000,
+            onClick: () => {
+              onTabChange?.('dashboard');
+              notifications.hide('task-created-success');
+            },
+            style: { cursor: 'pointer' }
+          });
         } else {
           setLastResult({
             ...result,
@@ -116,11 +205,26 @@ export function AIAssistantView() {
       addEvent(lastResult.event);
       setLastResult(null);
       setInput('');
+      
+      // Show success notification for conflicted event
+      notifications.show({
+        id: 'conflicted-task-created',
+        title: '✅ Task đã được thêm!',
+        message: `"${lastResult.event.title}" đã được thêm dù có xung đột. Click để xem trong Kanban!`,
+        color: 'orange',
+        autoClose: 8000,
+        onClick: () => {
+          onTabChange?.('dashboard');
+          notifications.hide('conflicted-task-created');
+        },
+        style: { cursor: 'pointer' }
+      });
     }
   };
 
   return (
     <Container size="lg">
+
       <Stack gap="lg">
         <Paper p="xl" withBorder>
           <Group mb="lg">
@@ -155,6 +259,22 @@ export function AIAssistantView() {
                     </ActionIcon>
                   }
                 />
+
+                {/* Quick Action Buttons */}
+                <Group>
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={handleCreateInProgress}
+                    loading={isProcessing}
+                    leftSection={<IconCalendarEvent size={16} />}
+                  >
+                    Tạo & Bắt đầu làm ngay
+                  </Button>
+                  <Text size="sm" c="dimmed">
+                    Hoặc nhấn Enter để tạo task thông thường
+                  </Text>
+                </Group>
 
                 {lastResult && (
                   <Card withBorder>

@@ -177,7 +177,7 @@ function App() {
       case 'analytics':
         return <AnalyticsView />;
       case 'ai':
-        return <AIAssistantView />;
+        return <AIAssistantView onTabChange={handleTabChange} />;
       default:
         return <Dashboard onTabChange={handleTabChange} />;
     }
