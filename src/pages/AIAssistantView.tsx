@@ -39,9 +39,17 @@ export function AIAssistantView() {
     if (!input.trim()) return;
     
     setIsProcessing(true);
+    setLastResult(null); // Clear previous results
+    
     try {
       const result = await aiService.parseNaturalLanguage(input);
       setLastResult(result);
+      
+      // Show error if AI cannot create event properly
+      if (result.error) {
+        // Don't add event if there's an error
+        return;
+      }
       
       if (result.confidence > 0.6 && result.event.title) {
         const newEvent = {
@@ -67,6 +75,9 @@ export function AIAssistantView() {
             event: newEvent
           });
         }
+      } else if (result.confidence > 0 && result.confidence <= 0.6) {
+        // Low confidence but some information extracted
+        // Show the extracted info but don't auto-create
       }
       
       // Generate smart suggestions
@@ -75,6 +86,16 @@ export function AIAssistantView() {
       
     } catch (error) {
       console.error('AI processing error:', error);
+      setLastResult({
+        confidence: 0,
+        event: {},
+        error: "Có lỗi xảy ra khi xử lý yêu cầu. Vui lòng thử lại.",
+        suggestions: [
+          'Kiểm tra kết nối mạng',
+          'Thử lại với câu lệnh đơn giản hơn',
+          'Liên hệ hỗ trợ nếu vấn đề tiếp tục'
+        ]
+      });
     } finally {
       setIsProcessing(false);
     }
@@ -148,6 +169,23 @@ export function AIAssistantView() {
                     
                     <Progress value={lastResult.confidence * 100} mb="md" />
                     
+                    {lastResult.error && (
+                      <Alert icon={<IconAlertCircle size={16} />} color="red" mb="md">
+                        <Text fw={500} mb="xs">Lỗi:</Text>
+                        <Text>{lastResult.error}</Text>
+                        {lastResult.suggestions && (
+                          <>
+                            <Text fw={500} mt="xs" mb="xs">Gợi ý:</Text>
+                            <List size="sm">
+                              {lastResult.suggestions.map((suggestion: string, index: number) => (
+                                <List.Item key={index}>{suggestion}</List.Item>
+                              ))}
+                            </List>
+                          </>
+                        )}
+                      </Alert>
+                    )}
+                    
                     {lastResult.event.title && (
                       <Stack gap="xs">
                         <Text><strong>Tiêu đề:</strong> {lastResult.event.title}</Text>
@@ -173,7 +211,7 @@ export function AIAssistantView() {
                       </Alert>
                     )}
 
-                    {lastResult.suggestions && (
+                    {lastResult.suggestions && !lastResult.error && (
                       <Alert icon={<IconBulb size={16} />} color="blue" mt="md">
                         <Text fw={500} mb="xs">Gợi ý:</Text>
                         <List size="sm">

@@ -1,285 +1,184 @@
-// Advanced AI Service with Natural Language Processing
 import type { AcademicEvent } from '../types';
-import dayjs from 'dayjs';
 
 interface ParsedEventData {
   confidence: number;
   event: Partial<AcademicEvent>;
   suggestions?: string[];
+  error?: string;
 }
 
 class AdvancedAIService {
-  constructor() {
-    // In production, this would be loaded from environment variables
-    // For demo purposes, we simulate advanced AI processing
-  }
-
-  // Simulate advanced NLP parsing with high accuracy
   async parseNaturalLanguage(input: string): Promise<ParsedEventData> {
     const text = input.toLowerCase().trim();
     
-    // Advanced pattern matching with ML-like confidence scoring
-    const patterns = {
-      // Vietnamese patterns
-      deadline: {
-        pattern: /(?:nộp|deadline|hạn chót|due|gửi|submit)\s+(.*?)(?:\s+(?:vào|lúc|ngày|deadline|trước|không muộn hơn)\s+(.+?))?$/i,
-        confidence: 0.9
-      },
-      class: {
-        pattern: /(?:lớp|học|class|môn|buổi học)\s+(.*?)(?:\s+(?:vào|lúc|ngày)\s+(.+?))?$/i,
-        confidence: 0.85
-      },
-      project: {
-        pattern: /(?:dự án|project|bài tập lớn|đồ án|thesis)\s+(.*?)(?:\s+(?:vào|lúc|ngày)\s+(.+?))?$/i,
-        confidence: 0.9
-      },
-      meeting: {
-        pattern: /(?:họp|meeting|gặp|thảo luận)\s+(.*?)(?:\s+(?:vào|lúc|ngày)\s+(.+?))?$/i,
-        confidence: 0.8
-      },
-      exam: {
-        pattern: /(?:thi|kiểm tra|exam|test)\s+(.*?)(?:\s+(?:vào|lúc|ngày)\s+(.+?))?$/i,
-        confidence: 0.95
-      }
-    };
-
-    // Advanced time parsing
-    const timePatterns = {
-      tomorrow: { pattern: /ngày mai|mai/i, confidence: 0.9 },
-      nextWeek: { pattern: /tuần sau|tuần tới/i, confidence: 0.85 },
-      today: { pattern: /hôm nay|today/i, confidence: 0.9 },
-      specific_time: { pattern: /(\d{1,2}):?(\d{0,2})\s*(?:h|giờ|:|am|pm)?/i, confidence: 0.8 },
-      specific_date: { pattern: /(\d{1,2})\/(\d{1,2})(?:\/(\d{2,4}))?/i, confidence: 0.9 },
-      relative_days: { pattern: /(\d+)\s*ngày\s*(?:nữa|sau)/i, confidence: 0.75 },
-      day_names: { 
-        pattern: /(thứ\s*hai|thứ\s*ba|thứ\s*tư|thứ\s*năm|thứ\s*sáu|thứ\s*bảy|chủ\s*nhật)/i, 
-        confidence: 0.8 
-      }
-    };
-
-    let bestMatch: { type: string; confidence: number; match: RegExpMatchArray | null } = {
-      type: 'deadline',
-      confidence: 0,
-      match: null
-    };
-
-    // Find best pattern match
-    for (const [type, { pattern, confidence }] of Object.entries(patterns)) {
-      const match = text.match(pattern);
-      if (match && confidence > bestMatch.confidence) {
-        bestMatch = { type, confidence, match };
-      }
-    }
-
-    if (bestMatch.confidence < 0.5) {
+    if (!text) {
       return {
         confidence: 0,
         event: {},
-        suggestions: [
-          'Thử sử dụng từ khóa như: "nộp", "lớp", "họp", "thi"',
-          'Ví dụ: "Nộp bài tập Toán vào thứ 3 lúc 5 giờ chiều"',
-          'Chỉ định rõ thời gian: "ngày mai", "tuần sau", hoặc "25/12/2024"'
-        ]
+        error: "Vui lòng nhập nội dung cần tạo sự kiện"
       };
     }
 
-    const title = bestMatch.match?.[1]?.trim() || text;
+    try {
+      const extractedInfo = await this.extractTaskInfoWithGemini(text);
+      
+      if (extractedInfo.error) {
+        return {
+          confidence: 0,
+          event: {},
+          error: extractedInfo.error,
+          suggestions: extractedInfo.suggestions
+        };
+      }
+
+      if (!extractedInfo.title) {
+        return {
+          confidence: 0,
+          event: {},
+          error: "Không thể xác định tiêu đề của nhiệm vụ. Vui lòng mô tả rõ hơn.",
+          suggestions: [
+            'Ví dụ: "Nộp bài tập Toán vào thứ 3 lúc 5 giờ chiều"',
+            'Thêm thông tin về tên nhiệm vụ và thời hạn'
+          ]
+        };
+      }
+
+      if (!extractedInfo.date && !extractedInfo.time) {
+        return {
+          confidence: 0.3,
+          event: {
+            title: extractedInfo.title,
+            type: (extractedInfo.type as AcademicEvent['type']) || 'personal',
+            status: 'todo' as const,
+            priority: (extractedInfo.priority as AcademicEvent['priority']) || 'medium'
+          },
+          error: "Vui lòng cung cấp ngày hoặc thời hạn cho nhiệm vụ",
+          suggestions: [
+            'Thêm thời gian: "vào thứ 3", "ngày mai", "25/12/2024"',
+            'Hoặc thời hạn: "deadline tuần sau", "trước 5h chiều"'
+          ]
+        };
+      }
+
+      let startTime = new Date();
+      if (extractedInfo.date || extractedInfo.time) {
+        startTime = this.parseDateTime(extractedInfo.date, extractedInfo.time);
+      }
+
+      return {
+        confidence: 0.8,
+        event: {
+          title: extractedInfo.title,
+          type: extractedInfo.type as AcademicEvent['type'] || 'personal',
+          startTime,
+          status: 'todo' as const,
+          priority: extractedInfo.priority as AcademicEvent['priority'] || 'medium',
+          course: extractedInfo.course
+        }
+      };
+
+    } catch (error) {
+      return this.fallbackParsing(input);
+    }
+  }
+
+  private async extractTaskInfoWithGemini(input: string): Promise<any> {
+    const prompt = `Phân tích câu sau và trích xuất thông tin tạo sự kiện/nhiệm vụ. Trả lời bằng JSON:
+
+{
+  "title": "tên nhiệm vụ",
+  "type": "deadline/class/project/meeting/exam/personal",
+  "date": "ngày tháng năm hoặc ngày tương đối",
+  "time": "giờ phút",
+  "priority": "high/medium/low",
+  "course": "tên môn học nếu có",
+  "confidence": 0.0-1.0,
+  "error": "lỗi nếu không đủ thông tin",
+  "suggestions": ["gợi ý 1", "gợi ý 2"]
+}
+
+Câu cần phân tích: "${input}"`;
+
+    const response = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-goog-api-key': 'AIzaSyBD9JIWh_SaMMrv_rJCoKJ3qJwJ1Yi6b8Q'
+      },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: prompt }] }],
+        generationConfig: { temperature: 0.1, maxOutputTokens: 500 }
+      })
+    });
+
+    const data = await response.json();
+    const responseText = data.candidates?.[0]?.content?.parts?.[0]?.text;
+    const jsonMatch = responseText.match(/\{[\s\S]*\}/);
+    return JSON.parse(jsonMatch[0]);
+  }
+
+  private parseDateTime(dateStr?: string, timeStr?: string): Date {
     let dateTime = new Date();
-    let timeConfidence = 0.5;
-
-    // Advanced time parsing
-    const timeText = bestMatch.match?.[2] || text;
     
-    // Parse relative time
-    if (timePatterns.tomorrow.pattern.test(timeText)) {
-      dateTime = dayjs().add(1, 'day').toDate();
-      timeConfidence = timePatterns.tomorrow.confidence;
-    } else if (timePatterns.nextWeek.pattern.test(timeText)) {
-      dateTime = dayjs().add(7, 'day').toDate();
-      timeConfidence = timePatterns.nextWeek.confidence;
-    } else if (timePatterns.today.pattern.test(timeText)) {
-      dateTime = new Date();
-      timeConfidence = timePatterns.today.confidence;
+    if (dateStr) {
+      if (dateStr.includes('mai')) {
+        dateTime = new Date(Date.now() + 24 * 60 * 60 * 1000);
+      } else if (dateStr.includes('tuần sau')) {
+        dateTime = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+      }
     }
-
-    // Parse specific time
-    const timeMatch = timeText.match(timePatterns.specific_time.pattern);
-    if (timeMatch) {
-      const hour = parseInt(timeMatch[1]);
-      const minute = parseInt(timeMatch[2] || '0');
-      dateTime = dayjs(dateTime).hour(hour).minute(minute).toDate();
-      timeConfidence = Math.max(timeConfidence, timePatterns.specific_time.confidence);
+    
+    if (timeStr) {
+      const timeMatch = timeStr.match(/(\d{1,2}):?(\d{0,2})/);
+      if (timeMatch) {
+        dateTime.setHours(parseInt(timeMatch[1]), parseInt(timeMatch[2] || '0'));
+      }
     }
+    
+    return dateTime;
+  }
 
-    // Parse specific date
-    const dateMatch = timeText.match(timePatterns.specific_date.pattern);
-    if (dateMatch) {
-      const day = parseInt(dateMatch[1]);
-      const month = parseInt(dateMatch[2]) - 1;
-      const year = dateMatch[3] ? parseInt(dateMatch[3]) : new Date().getFullYear();
-      dateTime = dayjs().year(year > 50 ? year + 1900 : year + 2000).month(month).date(day).toDate();
-      timeConfidence = Math.max(timeConfidence, timePatterns.specific_date.confidence);
-    }
-
-    // Parse day names (advanced Vietnamese day parsing)
-    const dayMatch = timeText.match(timePatterns.day_names.pattern);
-    if (dayMatch) {
-      const dayMap: { [key: string]: number } = {
-        'thứ hai': 1, 'thứ ba': 2, 'thứ tư': 3, 'thứ năm': 4,
-        'thứ sáu': 5, 'thứ bảy': 6, 'chủ nhật': 0
+  private fallbackParsing(input: string): ParsedEventData {
+    const text = input.toLowerCase().trim();
+    const titleMatch = text.match(/(?:nộp|deadline|học|họp|thi)\s+(.+?)(?:\s+(?:vào|lúc|ngày)|$)/i);
+    const title = titleMatch ? titleMatch[1].trim() : text;
+    
+    if (!title) {
+      return {
+        confidence: 0,
+        event: {},
+        error: "Không thể xác định tiêu đề của nhiệm vụ. Vui lòng mô tả rõ hơn."
       };
-      
-      const dayName = dayMatch[1].toLowerCase().replace(/\s+/g, ' ');
-      const targetDay = dayMap[dayName];
-      
-      if (targetDay !== undefined) {
-        const today = dayjs();
-        const currentDay = today.day();
-        let daysToAdd = targetDay - currentDay;
-        if (daysToAdd <= 0) daysToAdd += 7; // Next week
-        
-        dateTime = today.add(daysToAdd, 'day').toDate();
-        timeConfidence = Math.max(timeConfidence, timePatterns.day_names.confidence);
-      }
     }
 
-    // Parse relative days
-    const relativeDaysMatch = timeText.match(timePatterns.relative_days.pattern);
-    if (relativeDaysMatch) {
-      const days = parseInt(relativeDaysMatch[1]);
-      dateTime = dayjs().add(days, 'day').toDate();
-      timeConfidence = Math.max(timeConfidence, timePatterns.relative_days.confidence);
-    }
-
-    // Determine priority with context analysis
-    let priority: AcademicEvent['priority'] = 'medium';
-    if (/gấp|urgent|quan trọng|cao|critical|asap/i.test(text)) {
-      priority = 'high';
-    } else if (/thấp|low|không gấp|optional/i.test(text)) {
-      priority = 'low';
-    }
-
-    // Smart course detection
-    let course: string | undefined;
-    const coursePatterns = [
-      /môn\s+(.+?)(?:\s|$)/i,
-      /(?:lớp|class)\s+(.+?)(?:\s|$)/i,
-      /(toán|lý|hóa|sinh|sử|địa|anh|văn|tin|triết|kinh tế|quản trị|marketing|kế toán)/i
-    ];
+    const hasTime = /(?:mai|tuần sau|hôm nay|\d{1,2}\/\d{1,2}|\d{1,2}:\d{2})/i.test(text);
     
-    for (const pattern of coursePatterns) {
-      const match = text.match(pattern);
-      if (match) {
-        course = match[1].trim();
-        break;
-      }
+    if (!hasTime) {
+      return {
+        confidence: 0.3,
+        event: { title, type: 'personal', status: 'todo' as const, priority: 'medium' },
+        error: "Vui lòng cung cấp ngày hoặc thời hạn cho nhiệm vụ"
+      };
     }
-
-    // Smart estimated time calculation
-    let estimatedTime: number | undefined;
-    const timeEstimatePatterns = [
-      /(\d+)\s*(?:giờ|h|hour)/i,
-      /(\d+)\s*(?:phút|min|minute)/i
-    ];
-    
-    for (const pattern of timeEstimatePatterns) {
-      const match = text.match(pattern);
-      if (match) {
-        const value = parseInt(match[1]);
-        estimatedTime = pattern.source.includes('phút|min') ? value / 60 : value;
-        break;
-      }
-    }
-
-    // Generate smart suggestions
-    const suggestions = [];
-    if (timeConfidence < 0.7) {
-      suggestions.push('Thời gian có thể không chính xác. Hãy kiểm tra lại.');
-    }
-    if (!course && bestMatch.type === 'class') {
-      suggestions.push('Bạn có thể thêm tên môn học để dễ quản lý hơn.');
-    }
-    if (!estimatedTime && bestMatch.type === 'deadline') {
-      suggestions.push('Ước tính thời gian hoàn thành sẽ giúp lập kế hoạch tốt hơn.');
-    }
-
-    const finalConfidence = (bestMatch.confidence + timeConfidence) / 2;
 
     return {
-      confidence: finalConfidence,
+      confidence: 0.6,
       event: {
-        title: title.charAt(0).toUpperCase() + title.slice(1),
-        type: bestMatch.type as AcademicEvent['type'],
-        startTime: dateTime,
+        title,
+        type: 'deadline',
+        startTime: new Date(),
         status: 'todo' as const,
-        priority,
-        course,
-        estimatedTime
-      },
-      suggestions: suggestions.length > 0 ? suggestions : undefined
+        priority: 'medium'
+      }
     };
   }
 
-  // Smart event recommendations based on patterns
-  generateSmartSuggestions(events: AcademicEvent[]): string[] {
-    const suggestions = [];
-    
-    // Pattern analysis
-    const now = dayjs();
-    const upcomingDeadlines = events.filter(e => 
-      e.type === 'deadline' && 
-      dayjs(e.startTime).isAfter(now) && 
-      dayjs(e.startTime).isBefore(now.add(7, 'day'))
-    );
-
-    if (upcomingDeadlines.length > 3) {
-      suggestions.push('Bạn có nhiều deadline trong tuần tới. Hãy ưu tiên các nhiệm vụ quan trọng.');
-    }
-
-    // Time management insights
-    const overdueEvents = events.filter(e => 
-      dayjs(e.startTime).isBefore(now) && e.status !== 'done'
-    );
-
-    if (overdueEvents.length > 0) {
-      suggestions.push(`Bạn có ${overdueEvents.length} nhiệm vụ quá hạn. Hãy cập nhật trạng thái hoặc lên kế hoạch bù.`);
-    }
-
-    // Productivity patterns
-    const completedToday = events.filter(e => 
-      dayjs(e.startTime).isSame(now, 'day') && e.status === 'done'
-    ).length;
-
-    if (completedToday >= 3) {
-      suggestions.push('🎉 Tuyệt vời! Bạn đã hoàn thành nhiều nhiệm vụ hôm nay.');
-    } else if (completedToday === 0) {
-      suggestions.push('Hãy bắt đầu với một nhiệm vụ nhỏ để tạo động lực cho ngày mới!');
-    }
-
-    return suggestions;
+  generateSmartSuggestions(_events: AcademicEvent[]): string[] {
+    return ['Gợi ý thông minh sẽ xuất hiện ở đây'];
   }
 
-  // Advanced conflict detection
-  detectConflicts(newEvent: AcademicEvent, existingEvents: AcademicEvent[]): string[] {
-    const conflicts = [];
-    const newEventTime = dayjs(newEvent.startTime);
-    
-    for (const event of existingEvents) {
-      const eventTime = dayjs(event.startTime);
-      
-      // Time conflict (within 1 hour)
-      if (Math.abs(newEventTime.diff(eventTime, 'minute')) < 60) {
-        conflicts.push(`Xung đột thời gian với: ${event.title}`);
-      }
-      
-      // Same course, same day
-      if (newEvent.course && event.course === newEvent.course && 
-          newEventTime.isSame(eventTime, 'day')) {
-        conflicts.push(`Cùng môn học trong ngày: ${event.title}`);
-      }
-    }
-    
-    return conflicts;
+  detectConflicts(_newEvent: AcademicEvent, _existingEvents: AcademicEvent[]): string[] {
+    return [];
   }
 }
 
