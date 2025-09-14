@@ -69,13 +69,18 @@ export const useGoalStore = create<GoalStore>((set, get) => ({
   },
 
   updateGoal: async (id, updates) => {
+    console.log('goalStore.updateGoal called:', { id, updates });
     set({ isLoading: true, error: null });
     
     try {
       const currentGoals = get().goals;
       const goalIndex = currentGoals.findIndex(g => g.id === id);
       
+      console.log('Current goals:', currentGoals.length);
+      console.log('Goal index:', goalIndex);
+      
       if (goalIndex === -1) {
+        console.error('Goal not found in store:', id);
         throw new Error('Goal not found');
       }
 
@@ -85,11 +90,13 @@ export const useGoalStore = create<GoalStore>((set, get) => ({
         lastUpdated: new Date()
       };
 
+      console.log('Updating goal in database:', updatedGoal);
       await databaseService.updateGoal(id, updatedGoal);
       
       const newGoals = [...currentGoals];
       newGoals[goalIndex] = updatedGoal;
       
+      console.log('Goal updated successfully in store');
       set({ 
         goals: newGoals, 
         isLoading: false 

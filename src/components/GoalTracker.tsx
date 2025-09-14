@@ -57,6 +57,7 @@ export function GoalTracker() {
   
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingGoal, setEditingGoal] = useState<Goal | null>(null);
+  const [manuallyUpdatedGoals, setManuallyUpdatedGoals] = useState<Set<string>>(new Set());
 
   const form = useForm({
     initialValues: {
@@ -86,15 +87,27 @@ export function GoalTracker() {
     };
   }, [clearError]);
 
-  // Auto-update academic goals based on events
+  // Auto-update academic goals based on events (but respect manual updates)
   useEffect(() => {
+    // Disable auto-update for academic goals to prevent conflicts with manual updates
+    // Users can manually update goals by clicking + or - buttons
+    console.log('Auto-update disabled for academic goals to prevent conflicts with manual updates');
+    return;
+    
     const updateAcademicGoals = async () => {
       const now = dayjs();
       
       for (const goal of goals) {
+        // Skip if not academic goal or not active
         if (goal.category !== 'academic' || goal.status !== 'active') continue;
 
-        let newCurrent = goal.current;
+        // Skip if goal was manually updated recently
+        if (manuallyUpdatedGoals.has(goal.id)) {
+          console.log(`Skipping auto-update for goal ${goal.title} - manually updated recently`);
+          continue;
+        }
+
+        let newCurrent = 0; // Always calculate from scratch based on events
         
         // Calculate progress for different goal types
         if (goal.type === 'daily') {
@@ -127,20 +140,27 @@ export function GoalTracker() {
           }
         }
 
-        if (newCurrent !== goal.current) {
+        // Only update if there's a significant difference (to avoid constant updates)
+        if (Math.abs(newCurrent - goal.current) > 0.1) {
+          console.log(`Auto-updating goal ${goal.title}: ${goal.current} -> ${newCurrent}`);
           try {
             await updateGoal(goal.id, { current: newCurrent });
           } catch (error) {
-            console.error('Failed to update goal progress:', error);
+            console.error('Failed to auto-update goal progress:', error);
           }
         }
       }
     };
 
-    if (goals.length > 0) {
-      updateAcademicGoals();
-    }
-  }, [events, goals, updateGoal]);
+    // Only run auto-update periodically, not on every change
+    const timeoutId = setTimeout(() => {
+      if (goals.length > 0 && events.length > 0) {
+        updateAcademicGoals();
+      }
+    }, 1000); // Delay to avoid conflicts with manual updates
+
+    return () => clearTimeout(timeoutId);
+  }, [events, manuallyUpdatedGoals]); // Include manuallyUpdatedGoals in dependencies
 
   const handleSubmit = async (values: typeof form.values) => {
     try {
@@ -234,18 +254,42 @@ export function GoalTracker() {
   };
 
   const updateProgress = async (goalId: string, increment: number) => {
+    console.log('updateProgress called:', { goalId, increment });
+    
     const goal = goals.find(g => g.id === goalId);
-    if (!goal) return;
+    if (!goal) {
+      console.error('Goal not found:', goalId);
+      return;
+    }
+    
+    console.log('Current goal:', goal);
     
     const newCurrent = Math.max(0, goal.current + increment);
     const isCompleted = newCurrent >= goal.target;
+    
+    console.log('Updating progress:', { current: goal.current, newCurrent, target: goal.target, isCompleted });
+    
+    // Mark this goal as manually updated to prevent auto-update conflicts
+    setManuallyUpdatedGoals(prev => new Set(prev).add(goalId));
     
     try {
       await updateGoal(goalId, {
         current: newCurrent,
         status: isCompleted ? 'completed' : goal.status,
-        streak: isCompleted ? goal.streak + 1 : goal.streak
+        streak: isCompleted ? goal.streak + 1 : goal.streak,
+        lastUpdated: new Date()
       });
+      
+      console.log('Goal updated successfully');
+      
+      // Remove from manually updated set after a delay
+      setTimeout(() => {
+        setManuallyUpdatedGoals(prev => {
+          const newSet = new Set(prev);
+          newSet.delete(goalId);
+          return newSet;
+        });
+      }, 10000); // Keep protected for 10 seconds
       
       if (isCompleted && goal.status !== 'completed') {
         notifications.show({
@@ -256,6 +300,13 @@ export function GoalTracker() {
         });
       }
     } catch (error) {
+      console.error('Failed to update goal progress:', error);
+      // Remove from manually updated set if update failed
+      setManuallyUpdatedGoals(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(goalId);
+        return newSet;
+      });
       notifications.show({
         title: 'Lỗi',
         message: 'Không thể cập nhật tiến độ. Vui lòng thử lại.',
@@ -429,8 +480,12 @@ export function GoalTracker() {
                             size="sm"
                             variant="light"
                             color="red"
-                            onClick={() => updateProgress(goal.id, -1)}
-                            disabled={goal.current <= 0}
+                            onClick={() => {
+                              console.log('Minus button clicked for goal:', goal.id);
+                              updateProgress(goal.id, -1);
+                            }}
+                            disabled={goal.current <= 0 || isLoading}
+                            loading={isLoading}
                           >
                             <IconMinus size={14} />
                           </ActionIcon>
@@ -445,8 +500,12 @@ export function GoalTracker() {
                             size="sm"
                             variant="light"
                             color={goal.current >= goal.target ? "blue" : "green"}
-                            onClick={() => updateProgress(goal.id, 1)}
-                            disabled={goal.status === 'completed'}
+                            onClick={() => {
+                              console.log('Plus button clicked for goal:', goal.id);
+                              updateProgress(goal.id, 1);
+                            }}
+                            disabled={goal.status === 'completed' || isLoading}
+                            loading={isLoading}
                           >
                             {goal.current >= goal.target ? <IconCheck size={14} /> : <IconPlus size={14} />}
                           </ActionIcon>
