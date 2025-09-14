@@ -14,15 +14,7 @@
 ### 🎥 Demo Video
 **📹 Demo Video:** [https://youtu.be/your-demo-video-link](https://youtu.be/your-demo-video-link)
 
-**Video shows (5 minutes):**
-- ✅ Feature walkthrough across all 5 views
-- 🤖 AI Assistant demo with Vietnamese natural language input
-- ⏱️ Pomodoro Timer with automatic task time tracking
-- 📊 Real-time data sync between components
-- 🎯 Goal and habit tracking with automatic progress updates
-- 📈 Analytics dashboard with productivity insights
-
-### ⚡ Local Setup (< 2 minutes)
+### ⚡ Local Setup
 
 ```bash
 # Clone & Install
