@@ -7,7 +7,7 @@
 ## 🚀 Quick Start & Demo
 
 ### 🔗 Live Demo
-**🌐 Production URL:** [https://web-track-naver-vietnam-ai-hackathon-chris-lee1901-7ub1fjlkg.vercel.app](https://web-track-naver-vietnam-ai-hackathon-chris-lee1901-7ub1fjlkg.vercel.app)
+**🌐 Production URL:** [https://web-track-naver-vietnam-ai-hackathon-chris-lee1901-jgj8gmhuj.vercel.app](https://web-track-naver-vietnam-ai-hackathon-chris-lee1901-jgj8gmhuj.vercel.app)
 
 *Deployed on Vercel with Netlify backup*
 
@@ -84,7 +84,7 @@ An **AI-enhanced academic planning app** made specifically for Vietnamese studen
 | **✅ 20+ Items Support** | Performance optimized rendering, supports many events | Performance optimizations throughout |
 =======
 | **✅ 20+ Items Support** | Tested with 20+ events, optimized rendering | Performance tested throughout |
->>>>>>> 243d9f1b00923786da2782c32a158114c6ec234f
+
 
 ### 🔄 System Integration Pipeline
 
