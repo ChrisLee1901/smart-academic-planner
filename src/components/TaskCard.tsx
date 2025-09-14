@@ -11,9 +11,10 @@ interface TaskCardProps {
   onEdit: (event: AcademicEvent) => void;
   onDelete: (eventId: string) => void;
   onStatusChange: (eventId: string, status: AcademicEvent['status']) => void;
+  onClick?: (event: AcademicEvent) => void;
 }
 
-export function TaskCard({ event, onEdit, onDelete, onStatusChange }: TaskCardProps) {
+export function TaskCard({ event, onEdit, onDelete, onStatusChange, onClick }: TaskCardProps) {
   const [isHovered, setIsHovered] = useState(false);
 
   // const getTypeColor = (type: AcademicEvent['type']) => {
@@ -114,6 +115,7 @@ export function TaskCard({ event, onEdit, onDelete, onStatusChange }: TaskCardPr
         withBorder
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
+        onClick={() => onClick?.(event)}
         style={{
           transform: isHovered ? 'translateY(-4px) scale(1.02)' : 'translateY(0) scale(1)',
           transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
@@ -133,6 +135,7 @@ export function TaskCard({ event, onEdit, onDelete, onStatusChange }: TaskCardPr
             : '0 8px 25px rgba(0, 0, 0, 0.08)',
           position: 'relative',
           overflow: 'hidden',
+          cursor: onClick ? 'pointer' : 'default',
           ...(urgencyLevel === 'critical' && {
             animation: 'urgentPulse 3s infinite'
           })
@@ -219,6 +222,7 @@ export function TaskCard({ event, onEdit, onDelete, onStatusChange }: TaskCardPr
                 <ActionIcon 
                   variant="subtle" 
                   color="gray"
+                  onClick={(e) => e.stopPropagation()}
                   style={{
                     transform: isHovered ? 'scale(1.1)' : 'scale(1)',
                     transition: 'all 0.2s ease',

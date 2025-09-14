@@ -4,6 +4,7 @@ import { IconPlus, IconFilter } from '@tabler/icons-react';
 import type { AcademicEvent } from '../types';
 import { TaskCard } from './TaskCard';
 import { QuickAddTask } from './QuickAddTask';
+import { TaskDetailModal } from './TaskDetailModal';
 
 interface KanbanColumnProps {
   title: string;
@@ -29,6 +30,8 @@ export function KanbanColumn({
   color
 }: KanbanColumnProps) {
   const [filterMenuOpened, setFilterMenuOpened] = useState(false);
+  const [selectedEvent, setSelectedEvent] = useState<AcademicEvent | null>(null);
+  const [detailModalOpened, setDetailModalOpened] = useState(false);
   const [activeFilters, setActiveFilters] = useState({
     urgent: false,
     overdue: false,
@@ -96,6 +99,7 @@ export function KanbanColumn({
   const urgentCount = getUrgentCount();
 
   return (
+    <>
     <Paper withBorder p="md" radius="md" style={{ height: 'fit-content', minHeight: '400px' }}>
       <Stack gap="md">
         {/* Column Header */}
@@ -219,6 +223,10 @@ export function KanbanColumn({
                 onEdit={onEdit}
                 onDelete={onDelete}
                 onStatusChange={onStatusChange}
+                onClick={(event) => {
+                  setSelectedEvent(event);
+                  setDetailModalOpened(true);
+                }}
               />
             ))
           )}
@@ -306,5 +314,19 @@ export function KanbanColumn({
         )}
       </Stack>
     </Paper>
+
+    {/* Task Detail Modal */}
+    <TaskDetailModal
+      event={selectedEvent}
+      opened={detailModalOpened}
+      onClose={() => {
+        setDetailModalOpened(false);
+        setSelectedEvent(null);
+      }}
+      onEdit={onEdit}
+      onDelete={onDelete}
+      onStatusChange={onStatusChange}
+    />
+  </>
   );
 }
