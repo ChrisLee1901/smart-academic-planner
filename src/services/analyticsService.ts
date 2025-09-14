@@ -1,6 +1,6 @@
 // Advanced Analytics Service with ML-like insights
 import type { AcademicEvent } from '../types';
-import dayjs from 'dayjs';
+import dayjs from '../utils/dayjs';
 
 interface AnalyticsData {
   productivity: {

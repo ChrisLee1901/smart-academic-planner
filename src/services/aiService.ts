@@ -1,4 +1,5 @@
 import type { AcademicEvent } from '../types';
+import dayjs from '../utils/dayjs';
 
 interface ParsedEventData {
   confidence: number;
@@ -108,12 +109,19 @@ class AdvancedAIService {
     const prompt = `Hôm nay là ${todayStr}. Phân tích câu sau và trích xuất thông tin tạo sự kiện/nhiệm vụ. 
 
 QUAN TRỌNG về thời gian:
-- "3 ngày sau" = ngày ${today.getDate() + 3}/${today.getMonth() + 1}
-- "ngày mai", "mai" = ngày ${today.getDate() + 1}/${today.getMonth() + 1}
-- "ngày sau", "hôm sau" = ngày ${today.getDate() + 1}/${today.getMonth() + 1}
-- "tuần sau", "tuần tới" = ngày ${today.getDate() + 7}/${today.getMonth() + 1}
-- Thứ trong tuần: luôn tính từ tuần tiếp theo nếu không chỉ định rõ
-- Nếu có số + "ngày sau": cộng thêm số ngày đó vào hôm nay
+- "ngày mai", "mai" = ngày 15/9/2025 (Chủ nhật)
+- "ngày sau", "hôm sau" = ngày 15/9/2025 (Chủ nhật)  
+- "tuần sau", "tuần tới" = ngày 21/9/2025 (Thứ 7, cùng thứ tuần sau)
+- "đầu tuần sau" = ngày 15/9/2025 (Thứ 2 tuần sau)
+- "cuối tuần sau" = ngày 20/9/2025 hoặc 21/9/2025 (T6-T7 tuần sau)
+- "thứ 2 tuần sau" = ngày 15/9/2025
+- "thứ 3 tuần sau" = ngày 16/9/2025
+- "thứ 4 tuần sau" = ngày 17/9/2025
+- "thứ 5 tuần sau" = ngày 18/9/2025
+- "thứ 6 tuần sau" = ngày 19/9/2025
+- "thứ 7 tuần sau" = ngày 20/9/2025
+- "chủ nhật tuần sau" = ngày 21/9/2025
+- Nếu có số + "ngày sau": cộng thêm số ngày đó vào hôm nay (14/9)
 
 Trả lời bằng JSON chính xác:
 {
@@ -170,6 +178,14 @@ Câu cần phân tích: "${input}"`;
         dateTime.setDate(dateTime.getDate() + 1);
       } else if (dateInput.includes('ngày kia')) {
         dateTime.setDate(dateTime.getDate() + 2);
+      } else if (dateInput.includes('đầu tuần sau')) {
+        // Tính Thứ 2 của tuần sau
+        const nextMonday = dayjs().add(1, 'week').startOf('week');
+        dateTime = nextMonday.toDate();
+      } else if (dateInput.includes('cuối tuần sau')) {
+        // Tính Thứ 7 của tuần sau  
+        const nextSaturday = dayjs().add(1, 'week').startOf('week').add(5, 'day');
+        dateTime = nextSaturday.toDate();
       } else if (dateInput.includes('tuần sau') || dateInput.includes('tuần tới')) {
         dateTime.setDate(dateTime.getDate() + 7);
       } else if (dateInput.includes('tháng sau') || dateInput.includes('tháng tới')) {
@@ -195,7 +211,7 @@ Câu cần phân tích: "${input}"`;
         dateTime.setMonth(dateTime.getMonth() + months);
       }
       
-      // Xử lý thứ trong tuần
+      // Xử lý thứ trong tuần (ưu tiên xử lý "thứ X tuần sau" trước)
       const dayOfWeekMap: { [key: string]: number } = {
         'chủ nhật': 0, 'cn': 0,
         'thứ hai': 1, 't2': 1, 'thứ 2': 1,
@@ -206,13 +222,28 @@ Câu cần phân tích: "${input}"`;
         'thứ bảy': 6, 't7': 6, 'thứ 7': 6
       };
       
+      // Xử lý "thứ X tuần sau" - phải xử lý trước "tuần sau"
+      let dayOfWeekProcessed = false;
       for (const [dayName, dayNumber] of Object.entries(dayOfWeekMap)) {
-        if (dateInput.includes(dayName)) {
-          const currentDay = dateTime.getDay();
-          let daysToAdd = dayNumber - currentDay;
-          if (daysToAdd <= 0) daysToAdd += 7; // Nếu là ngày trong tuần này thì chuyển sang tuần sau
-          dateTime.setDate(dateTime.getDate() + daysToAdd);
+        if (dateInput.includes(dayName) && dateInput.includes('tuần sau')) {
+          // Tính thứ X của tuần sau
+          const nextWeekDay = dayjs().add(1, 'week').startOf('week').add(dayNumber === 0 ? 6 : dayNumber - 1, 'day');
+          dateTime = nextWeekDay.toDate();
+          dayOfWeekProcessed = true;
           break;
+        }
+      }
+      
+      // Xử lý thứ trong tuần hiện tại (nếu chưa xử lý "tuần sau")
+      if (!dayOfWeekProcessed) {
+        for (const [dayName, dayNumber] of Object.entries(dayOfWeekMap)) {
+          if (dateInput.includes(dayName)) {
+            const currentDay = dateTime.getDay();
+            let daysToAdd = dayNumber - currentDay;
+            if (daysToAdd <= 0) daysToAdd += 7; // Nếu là ngày trong tuần này thì chuyển sang tuần sau
+            dateTime.setDate(dateTime.getDate() + daysToAdd);
+            break;
+          }
         }
       }
       

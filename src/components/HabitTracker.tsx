@@ -31,7 +31,7 @@ import {
 } from '@tabler/icons-react';
 import { useForm } from '@mantine/form';
 import { notifications } from '@mantine/notifications';
-import dayjs from 'dayjs';
+import dayjs from '../utils/dayjs';
 import { useHabitStore } from '../store/habitStore';
 import { type Habit } from '../services/databaseService';
 

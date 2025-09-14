@@ -28,7 +28,7 @@ import { useForm } from '@mantine/form';
 import { notifications } from '@mantine/notifications';
 import { useEventStore } from '../store/eventStore';
 import { geminiService } from '../services/geminiService';
-import dayjs from 'dayjs';
+import dayjs from '../utils/dayjs';
 
 interface AIAssistantMessage {
   id: string;

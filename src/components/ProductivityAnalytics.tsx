@@ -26,7 +26,7 @@ import {
 } from '@tabler/icons-react';
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { useEventStore } from '../store/eventStore';
-import dayjs from 'dayjs';
+import dayjs from '../utils/dayjs';
 
 interface ProductivityMetrics {
   totalTasksCompleted: number;

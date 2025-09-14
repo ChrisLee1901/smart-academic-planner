@@ -1,6 +1,6 @@
 import { Paper, Text, Grid, Box, Stack, Group } from '@mantine/core';
 import { IconClock } from '@tabler/icons-react';
-import dayjs from 'dayjs';
+import dayjs from '../../utils/dayjs';
 import type { AcademicEvent } from '../../types';
 import { formatTime } from '../../utils/dateUtils';
 
@@ -62,7 +62,7 @@ export function MonthView({ selectedDate, events, onEventClick, onDateClick }: M
       <Stack gap="xs">
         {/* Header with day names */}
         <Grid>
-          {['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'].map((dayName) => (
+          {['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'].map((dayName) => (
             <Grid.Col span={12/7} key={dayName}>
               <Text ta="center" fw={600} size="sm" c="dimmed">
                 {dayName}

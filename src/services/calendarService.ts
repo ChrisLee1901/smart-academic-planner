@@ -1,6 +1,6 @@
 // Advanced Calendar Service with Smart Scheduling
 import type { AcademicEvent } from '../types';
-import dayjs from 'dayjs';
+import dayjs from '../utils/dayjs';
 
 interface CalendarEvent extends AcademicEvent {
   conflicts?: string[];

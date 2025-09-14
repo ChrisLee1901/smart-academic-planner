@@ -18,7 +18,7 @@ import { IconClock } from '@tabler/icons-react';
 import type { AcademicEvent, EventFormData } from '../types';
 import { generateId } from '../utils/dateUtils';
 import { ProcrastinationAnalysisService } from '../services/procrastinationService';
-import dayjs from 'dayjs';
+import dayjs from '../utils/dayjs';
 
 interface EventFormProps {
   event?: AcademicEvent;

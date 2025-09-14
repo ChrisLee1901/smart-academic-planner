@@ -19,7 +19,7 @@ import { EventForm } from './EventForm';
 import { useEventStore } from '../store/eventStore';
 import type { AcademicEvent } from '../types';
 import { formatDateTime, getRelativeTime, getDaysUntil } from '../utils/dateUtils';
-import dayjs from 'dayjs';
+import dayjs from '../utils/dayjs';
 
 interface EnhancedEventCardProps {
   event: AcademicEvent;

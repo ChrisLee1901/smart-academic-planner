@@ -1,5 +1,5 @@
 import type { AcademicEvent } from '../types';
-import dayjs from 'dayjs';
+import dayjs from '../utils/dayjs';
 
 interface ProcrastinationPattern {
   userId: string;

@@ -24,7 +24,7 @@ import { MonthView } from '../components/calendar/MonthView';
 import { WeekView } from '../components/calendar/WeekView';
 import { DayView } from '../components/calendar/DayView';
 import type { AcademicEvent } from '../types';
-import dayjs from 'dayjs';
+import dayjs from '../utils/dayjs';
 
 export function CalendarView() {
   const { events, addEvent, updateEvent } = useEventStore();

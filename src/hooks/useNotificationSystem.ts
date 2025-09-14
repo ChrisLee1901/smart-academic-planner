@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { notifications } from '@mantine/notifications';
 import { useEventStore } from '../store/eventStore';
-import dayjs from 'dayjs';
+import dayjs from '../utils/dayjs';
 
 interface NotificationConfig {
   deadlineReminders: boolean;

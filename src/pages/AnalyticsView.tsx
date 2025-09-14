@@ -30,7 +30,7 @@ import {
 } from '@tabler/icons-react';
 import { useEventStore } from '../store/eventStore';
 import { ProcrastinationAnalysisService } from '../services/procrastinationService';
-import dayjs from 'dayjs';
+import dayjs from '../utils/dayjs';
 
 interface ProductivityMetrics {
   totalTasks: number;

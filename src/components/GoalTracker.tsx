@@ -39,7 +39,7 @@ import { notifications } from '@mantine/notifications';
 import { useEventStore } from '../store/eventStore';
 import { useGoalStore } from '../store/goalStore';
 import { type Goal } from '../services/databaseService';
-import dayjs from 'dayjs';
+import dayjs from '../utils/dayjs';
 
 export function GoalTracker() {
   const { events } = useEventStore();

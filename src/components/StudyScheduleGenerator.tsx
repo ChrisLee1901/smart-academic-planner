@@ -24,7 +24,7 @@ import {
   IconTarget
 } from '@tabler/icons-react';
 import { useEventStore } from '../store/eventStore';
-import dayjs from 'dayjs';
+import dayjs from '../utils/dayjs';
 
 interface StudyRecommendation {
   date: string;

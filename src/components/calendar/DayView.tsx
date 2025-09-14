@@ -1,6 +1,6 @@
 import { Paper, Text, Stack, Group, Box, ScrollArea, Badge } from '@mantine/core';
 import { IconClock, IconFlag } from '@tabler/icons-react';
-import dayjs from 'dayjs';
+import dayjs from '../../utils/dayjs';
 import type { AcademicEvent } from '../../types';
 import { formatTime } from '../../utils/dateUtils';
 

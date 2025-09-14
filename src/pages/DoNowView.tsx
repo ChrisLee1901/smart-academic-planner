@@ -28,7 +28,7 @@ import {
 import { notifications } from '@mantine/notifications';
 import { useEventStore } from '../store/eventStore';
 import type { AcademicEvent } from '../types';
-import dayjs from 'dayjs';
+import dayjs from '../utils/dayjs';
 
 interface TaskWithPriority extends AcademicEvent {
   aiPriorityScore: number;
