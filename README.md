@@ -14,15 +14,7 @@
 ### 🎥 Demo Video
 **📹 Demo Video:** [https://youtu.be/your-demo-video-link](https://youtu.be/your-demo-video-link)
 
-**Video shows (5 minutes):**
-- ✅ Feature walkthrough across all 5 views
-- 🤖 AI Assistant demo with Vietnamese natural language input
-- ⏱️ Pomodoro Timer with automatic task time tracking
-- 📊 Real-time data sync between components
-- 🎯 Goal and habit tracking with automatic progress updates
-- 📈 Analytics dashboard with productivity insights
-
-### ⚡ Local Setup (< 2 minutes)
+### ⚡ Local Setup
 
 ```bash
 # Clone & Install
@@ -147,14 +139,26 @@ class IntegrationService {
 
 ## 🎯 Features I Built
 
-### 🏠 1. Dashboard (Main View)
-**What it does:** Shows your academic life at a glance
+### 🏠 1. Dashboard (Main View) + Task Detail Panel
+**What it does:** Shows your academic life at a glance with comprehensive task management
 
-**Features:**
+**Main Features:**
 - **🎯 Quick Stats:** How many tasks done, what's coming up, what's overdue
 - **📋 Kanban Board:** Todo → In Progress → Done with status updates
 - **⚡ Quick Actions:** Add tasks fast, change priorities
 - **🚨 Smart Alerts:** Notifications based on urgency
+
+**Task Detail Panel**
+- **📝 Click to View Details:** Click any task in Kanban to see full information
+- **📄 Task-Specific Notes:** 3 types of notes for each task:
+  - **📝 Note:** General observations and thoughts
+  - **📊 Report:** Progress updates and achievements  
+  - **💡 Reminder:** Important things to remember
+- **✅ Sub-Task Management:** Break down tasks into smaller actionable items with progress tracking
+- **📅 Daily Sticky Notes:** Personal daily notes that automatically reset each day
+- **🔄 Status Change:** Update task status directly from detail view
+- **❌ Close/Open Panel:** Collapsible panel with "Mở Daily Note" button in header
+- **💾 Smart Persistence:** All notes and sub-tasks saved to localStorage
 
 **How it works:**
 ```typescript
@@ -388,6 +392,29 @@ const storageSystem = {
 };
 ```
 
+// Task detail data structures
+interface TaskNote {
+  id: string;
+  taskId: string;
+  type: 'note' | 'report' | 'reminder';
+  content: string;
+  lastUpdated: Date;
+}
+
+interface SubTask {
+  id: string;
+  taskId: string;
+  title: string;
+  completed: boolean;
+  createdAt: Date;
+}
+
+interface DailyNote {
+  date: string; // YYYY-MM-DD format
+  content: string;
+  lastUpdated: Date;
+}
+
 ### ⚡ Performance Optimizations
 ```typescript
 // Memoized components for better performance
@@ -552,16 +579,22 @@ class SmartSync {
 | **📊 Analytics Engine** | ✅ Working | Procrastination tracking, productivity scoring, trend analysis | Helps understand study patterns |
 | **⏱️ Time Intelligence** | ✅ Smart | Automatic time tracking, realistic estimation, pattern learning | Solves time management issues |
 | **🎯 Goal Automation** | ✅ Smart | Smart auto-updating goals with manual override protection | Intelligent progress tracking with conflict resolution |
+| **🆕 Task Detail Panel** | ✅ New | Comprehensive task management with notes and sub-tasks | Complete task workspace with persistence |
+| **📝 Multi-Type Notes** | ✅ New | 3 note types (note/report/reminder) per task | Organized information management |
+| **✅ Sub-Task System** | ✅ New | Break down tasks with automatic progress tracking | Better task organization and completion |
+| **📅 Daily Sticky Notes** | ✅ New | Personal daily workspace that auto-resets | Daily planning and reflection space |
+| **🎨 Adaptive Layout** | ✅ New | Panel collapse/expand with responsive grid system | Optimized screen space usage |
 
 ### 🏆 Code Stats
 
 ```bash
 # Project Numbers
-📁 Total Files: 61 (43 TypeScript files)
+📁 Total Files: 64 (46 TypeScript files)
 📝 TypeScript Usage: Modern TS/TSX throughout
 🧪 Error Handling: Comprehensive error handling
 ⚡ Performance: Optimized rendering for many items
-🎨 UI Components: 18 reusable components
+🎨 UI Components: 19 reusable components
+📝 Note System: 3 note types with localStorage persistence
 🔧 Services: 8 specialized service modules
 📊 Store Management: 3 Zustand stores
 ```
@@ -660,6 +693,11 @@ const aiServices = {
 - **🇻🇳 Vietnamese Optimization:** AI assistant trained for Vietnamese academic context
 - **📊 Smart Analytics:** Multi-dimensional productivity insights with trend analysis
 - **⏱️ Smart Time Management:** Automatic time tracking and intelligent goal updates
+- **🆕 Comprehensive Task Management:** Full task detail system with notes, sub-tasks, and daily planning
+- **📝 Multi-Type Note System:** Task-specific notes with 3 categories (note/report/reminder)
+- **✅ Sub-Task Tracking:** Break down complex tasks with automatic progress calculation
+- **📅 Daily Sticky Notes:** Personal daily workspace that resets automatically
+- **🎨 Adaptive UI:** Panel collapses/expands to optimize screen space usage
 
 ### 🎨 User Experience
 - **🎨 Modern UI:** Gradient-based design with smooth animations
