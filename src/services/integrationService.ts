@@ -580,17 +580,39 @@ class IntegrationService {
     }
   }
 
-  // Get available tasks for Pomodoro selection
+  // Get available tasks for Pomodoro selection with improved store integration
   async getAvailableTasks(): Promise<Array<{value: string, label: string, estimatedTime?: number}>> {
     try {
+      // First try to get from localStorage for persistence
       const events = await this.safeGetData<AcademicEvent>('academic-planner-events');
-      return events
-        .filter((event) => event.status !== 'done')
-        .map((event) => ({
-          value: event.id,
-          label: `${event.title} ${event.course ? `(${event.course})` : ''}`,
-          estimatedTime: event.estimatedTime
-        }));
+      
+      if (events.length > 0) {
+        return events
+          .filter((event) => event.status !== 'done')
+          .map((event) => ({
+            value: event.id,
+            label: `${event.title} ${event.course ? `(${event.course})` : ''}`,
+            estimatedTime: event.estimatedTime
+          }));
+      }
+
+      // If localStorage is empty, try to get from current store data
+      // This ensures Kanban board tasks are available even if not persisted yet
+      const storeData = this.getCache('events') || [];
+      if (Array.isArray(storeData) && storeData.length > 0) {
+        console.log('Using cached store data for available tasks');
+        return storeData
+          .filter((event: AcademicEvent) => event.status !== 'done')
+          .map((event: AcademicEvent) => ({
+            value: event.id,
+            label: `${event.title} ${event.course ? `(${event.course})` : ''}`,
+            estimatedTime: event.estimatedTime
+          }));
+      }
+
+      // Final fallback - return empty array but log for debugging
+      console.warn('No tasks found in localStorage or cache for Pomodoro Timer');
+      return [];
     } catch (error) {
       console.error('Error getting available tasks:', error);
       return [];
@@ -653,6 +675,11 @@ class IntegrationService {
   // Clear cache when needed
   clearCache() {
     this.dataCache.clear();
+  }
+
+  // Cache store data for better integration
+  cacheStoreData(key: string, data: any) {
+    this.setCache(key, data, this.CACHE_TTL);
   }
 
   // Get cache statistics for debugging

@@ -64,23 +64,38 @@ export function PomodoroTimer() {
   const intervalRef = useRef<number | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
-  // Load available tasks from integration service (unified data source)
+  // Load available tasks prioritizing store data for better Kanban integration
   useEffect(() => {
     const loadTasks = async () => {
       try {
-        const tasks = await integrationService.getAvailableTasks();
-        setAvailableTasks(tasks);
-      } catch (error) {
-        console.error('Failed to load available tasks:', error);
-        // Fallback to store data if integration service fails
-        const fallbackTasks = events
+        // First, try to get tasks from the store (Kanban board data)
+        const storeTasks = events
           .filter(event => event.status !== 'done')
           .map(event => ({
             value: event.id,
             label: `${event.title} ${event.course ? `(${event.course})` : ''}`,
             estimatedTime: event.estimatedTime
           }));
-        setAvailableTasks(fallbackTasks);
+
+        // Cache store data in integration service for consistency
+        if (storeTasks.length > 0) {
+          integrationService.cacheStoreData('events', events);
+        }
+
+        // If store has tasks, use them directly for immediate Kanban sync
+        if (storeTasks.length > 0) {
+          setAvailableTasks(storeTasks);
+          console.log(`Loaded ${storeTasks.length} tasks from store for Pomodoro`);
+        } else {
+          // Fallback to integration service if store is empty
+          const integrationTasks = await integrationService.getAvailableTasks();
+          setAvailableTasks(integrationTasks);
+          console.log(`Loaded ${integrationTasks.length} tasks from integration service`);
+        }
+      } catch (error) {
+        console.error('Failed to load available tasks:', error);
+        // Final fallback to empty array
+        setAvailableTasks([]);
       }
     };
 
@@ -104,7 +119,7 @@ export function PomodoroTimer() {
       window.removeEventListener('integration', handleIntegrationEvent as EventListener);
       window.removeEventListener('taskUpdated', handleLegacyEvent);
     };
-  }, [events]); // Keep events dependency for fallback
+  }, [events]); // Keep events dependency for store sync
 
   // Initialize audio
   useEffect(() => {
