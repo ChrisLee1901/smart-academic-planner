@@ -7,7 +7,7 @@
 ## 🚀 Quick Start & Demo
 
 ### 🔗 Live Demo
-**🌐 Production URL:** [https://web-track-naver-vietnam-ai-hackathon-chris-lee1901-jgj8gmhuj.vercel.app](https://web-track-naver-vietnam-ai-hackathon-chris-lee1901-jgj8gmhuj.vercel.app)
+**🌐 Production URL:** [https://web-track-naver-vietnam-ai-hackathon-chris-lee1901-h6ki6hwdw.vercel.app](https://web-track-naver-vietnam-ai-hackathon-chris-lee1901-h6ki6hwdw.vercel.app)
 
 *Deployed on Vercel with Netlify backup*
 
