@@ -642,7 +642,7 @@ const aiServices = {
 ### 🎯 Technical Stuff
 - **🔥 Modern Stack:** React 19 + TypeScript 5.8 + Vite 7.1
 - **🤖 Working AI:** Google Gemini integration with error handling
-- **⚡ Performance:** Optimized for 100+ items
+- **⚡ Performance:** Optimized for 20+ items
 - **📱 Responsive:** Mobile-first design with accessibility
 - **🔄 Real-time Sync:** Event-driven updates across all views
 
