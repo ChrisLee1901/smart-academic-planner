@@ -16,15 +16,15 @@ interface TaskCardProps {
 export function TaskCard({ event, onEdit, onDelete, onStatusChange }: TaskCardProps) {
   const [isHovered, setIsHovered] = useState(false);
 
-  const getTypeColor = (type: AcademicEvent['type']) => {
-    const colors = {
-      deadline: 'red',
-      class: 'blue',
-      project: 'orange',
-      personal: 'green'
-    };
-    return colors[type] || 'gray';
-  };
+  // const getTypeColor = (type: AcademicEvent['type']) => {
+  //   const colors = {
+  //     deadline: 'red',
+  //     class: 'blue',
+  //     project: 'orange',
+  //     personal: 'green'
+  //   };
+  //   return colors[type] || 'gray';
+  // };
 
   const getPriorityColor = (priority: AcademicEvent['priority']) => {
     const colors = {
@@ -87,11 +87,11 @@ export function TaskCard({ event, onEdit, onDelete, onStatusChange }: TaskCardPr
   const timeProgress = getTimeProgress();
 
   // Dynamic card classes based on urgency
-  const cardClasses = [
-    'event-card-animated',
-    urgencyInfo.shouldPulse ? 'urgent-card' : '',
-    'event-card-gradient'
-  ].filter(Boolean).join(' ');
+  // const cardClasses = [
+  //   'event-card-animated',
+  //   urgencyInfo.shouldPulse ? 'urgent-card' : '',
+  //   'event-card-gradient'
+  // ].filter(Boolean).join(' ');
 
   return (
     <Box style={{ position: 'relative' }}>

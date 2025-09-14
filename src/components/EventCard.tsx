@@ -1,6 +1,5 @@
 import { Card, Text, Badge, Group, ActionIcon, Stack, Progress, Box, Tooltip } from '@mantine/core';
-import { IconEdit, IconTrash, IconClock, IconCheck, IconAlertTriangle, IconCalendarEvent } from '@tabler/icons-react';
-import { useEffect, useState } from 'react';
+import { IconEdit, IconTrash, IconClock, IconCheck } from '@tabler/icons-react';
 import type { AcademicEvent } from '../types';
 import { formatDateTime, getRelativeTime, getDaysUntil } from '../utils/dateUtils';
 import { getUrgencyLevel, getUrgencyInfo, getUrgencyMessage } from '../utils/urgencyUtils';

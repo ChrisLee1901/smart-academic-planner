@@ -12,8 +12,8 @@ import {
   ThemeIcon,
   RingProgress,
   Progress,
-  Alert,
-  List
+  Alert
+  // List
 } from '@mantine/core';
 import { 
   IconChartBar,
@@ -24,9 +24,9 @@ import {
   IconBrain,
   IconFlame,
   IconMoodSmile,
-  IconMoodSad,
-  IconAlertTriangle,
-  IconCheckbox
+  IconMoodSad
+  // IconAlertTriangle,
+  // IconCheckbox
 } from '@tabler/icons-react';
 import { useEventStore } from '../store/eventStore';
 import { ProcrastinationAnalysisService } from '../services/procrastinationService';
@@ -420,7 +420,7 @@ export function AnalyticsView() {
                     <Text size="sm" fw={500} mb="xs">💡 Gợi ý cải thiện:</Text>
                     <Stack gap="xs">
                       {procrastinationInsights.recommendations.map((rec, index) => (
-                        <Alert key={index} color="blue" variant="light" size="sm">
+                        <Alert key={index} color="blue" variant="light">
                           {rec}
                         </Alert>
                       ))}
