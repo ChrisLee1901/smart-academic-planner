@@ -3,12 +3,11 @@
 # 🎯 Smart Academic Planner – AI-Powered Student Time Management App
 **NAVER Vietnam AI Hackathon 2025 Preliminary Assignment**
 
-![Project Banner](https://img.shields.io/badge/React-19.1.1-61DAFB?style=for-the-badge&logo=react) ![TypeScript](https://img.shields.io/badge/TypeScript-5.8.3-3178C6?style=for-the-badge&logo=typescript) ![AI](https://img.shields.io/badge/AI-Gemini%202.0-FF6B6B?style=for-the-badge&logo=google) ![Build](https://img.shields.io/badge/Build-Passing-4CAF50?style=for-the-badge)
 
 ## 🚀 Quick Start & Demo
 
 ### 🔗 Live Demo
-**🌐 Production URL:** [https://web-track-naver-vietnam-ai-hackathon-chris-lee1901-hv525kior.vercel.app](https://web-track-naver-vietnam-ai-hackathon-chris-lee1901-hv525kior.vercel.app)
+**🌐 Production URL:** [https://web-track-naver-vietnam-ai-hackathon-chris-lee1901-7ub1fjlkg.vercel.app](https://web-track-naver-vietnam-ai-hackathon-chris-lee1901-7ub1fjlkg.vercel.app)
 
 *Deployed on Vercel with Netlify backup*
 
@@ -680,8 +679,7 @@ This project shows both my technical skills and understanding of real student ne
 *NAVER Vietnam AI Hackathon 2025 - Web Track Submission*
 
 **🔗 Links:**
-- 🌐 **Live Demo:** [https://web-track-naver-vietnam-ai-hackathon-chris-lee1901-hv525kior.vercel.app](https://web-track-naver-vietnam-ai-hackathon-chris-lee1901-hv525kior.vercel.app)
+- 🌐 **Live Demo:** [https://web-track-naver-vietnam-ai-hackathon-chris-lee1901-7ub1fjlkg.vercel.app](https://web-track-naver-vietnam-ai-hackathon-chris-lee1901-7ub1fjlkg.vercel.app)
 - 📹 **Demo Video:** [https://youtu.be/your-demo-video-link](https://youtu.be/your-demo-video-link)
-- 📧 **Contact:** [your-email@example.com](mailto:your-email@example.com)
 
 *Ready for NAVER Vietnam AI Hackathon 2025 evaluation* ✨
