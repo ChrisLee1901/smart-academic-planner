@@ -16,11 +16,11 @@
 
 **Video shows (5 minutes):**
 - ✅ Feature walkthrough across all 5 views
-- 🤖 AI Assistant demo with Vietnamese input
-- ⏱️ Pomodoro Timer with automatic task tracking
-- 📊 Data sync between different parts
-- 🎯 Goal and habit tracking progress
-- 📈 Analytics dashboard with charts
+- 🤖 AI Assistant demo with Vietnamese natural language input
+- ⏱️ Pomodoro Timer with automatic task time tracking
+- 📊 Real-time data sync between components
+- 🎯 Goal and habit tracking with automatic progress updates
+- 📈 Analytics dashboard with productivity insights
 
 ### ⚡ Local Setup (< 2 minutes)
 
@@ -40,9 +40,9 @@ npm run build && npm run preview
 
 **🎯 First-Time User Guide:**
 1. **Dashboard:** Create your first task using "✅ Tạo nhiệm vụ mới"
-2. **AI Assistant:** Try "học toán 2 giờ ngày mai" for intelligent task creation
+2. **AI Assistant:** Try "Nộp bài tập Toán vào thứ 3 lúc 5 giờ chiều" for intelligent task creation
 3. **Pomodoro:** Start a focus session - watch your task times update automatically
-4. **Goals:** Set "Học 10 giờ tuần này" and see automatic progress from completed tasks
+4. **Goals:** Set "Học 2 giờ mỗi ngày" and see automatic progress from completed tasks
 5. **Analytics:** Complete some tasks to see your productivity visualization
 
 ---
@@ -60,13 +60,13 @@ Vietnamese university students (like me) face these daily struggles:
 
 ### 🎯 My Solution: Put Everything Together
 
-An **AI-powered academic planning app** made specifically for Vietnamese students:
+An **AI-enhanced academic planning app** made specifically for Vietnamese students:
 
 ```
-🧠 AI Brain → 📅 Smart Planning → ⏱️ Focus Sessions → 📊 Progress Tracking
+� AI Assistant → 📅 Smart Planning → ⏱️ Focus Sessions → 📊 Progress Tracking
 ```
 
-**Main Idea:** Instead of managing tasks separately, everything works together and learns from your habits.
+**Main Idea:** Instead of managing tasks separately, everything works together and learns from your patterns.
 
 ---
 
@@ -80,7 +80,11 @@ An **AI-powered academic planning app** made specifically for Vietnamese student
 | **✅ Persistent Storage** | localStorage with data recovery | `src/services/migrationService.ts` |
 | **✅ 3+ Different Views** | **5 Views:** Dashboard, Calendar, Analytics, Do-Now, AI Assistant | `src/pages/` directory |
 | **✅ Time/Date Handling** | Date parsing, Vietnamese time expressions | `src/utils/dateUtils.ts`, `src/services/aiService.ts` |
+<<<<<<< HEAD
+| **✅ 20+ Items Support** | Performance optimized rendering, supports many events | Performance optimizations throughout |
+=======
 | **✅ 20+ Items Support** | Tested with 20+ events, optimized rendering | Performance tested throughout |
+>>>>>>> 243d9f1b00923786da2782c32a158114c6ec234f
 
 ### 🔄 System Integration Pipeline
 
@@ -148,24 +152,18 @@ class IntegrationService {
 
 **Features:**
 - **🎯 Quick Stats:** How many tasks done, what's coming up, what's overdue
-- **📋 Kanban Board:** Todo → In Progress → Done (drag and drop works)
+- **📋 Kanban Board:** Todo → In Progress → Done with status updates
 - **⚡ Quick Actions:** Add tasks fast, change priorities
 - **🚨 Smart Alerts:** Notifications based on urgency
 
 **How it works:**
 ```typescript
-// Calculates stats in real-time
-const dashboardMetrics = useMemo(() => {
-  const now = new Date();
-  const upcoming = events.filter(e => isWithinNext24Hours(e.startTime));
-  const overdue = events.filter(e => isPastDue(e.startTime) && e.status !== 'done');
-  
-  return {
-    completionRate: calculateWeightedCompletion(events),
-    urgentTasks: prioritizeByAI(upcoming),
-    riskLevel: assessProcrastinationRisk(overdue)
-  };
-}, [events]);
+// Dashboard shows real-time statistics
+const stats = {
+  upcoming: events.filter(e => isUpcoming(e.startTime)),
+  overdue: events.filter(e => isPastDue(e.startTime) && e.status !== 'done'),
+  completed: events.filter(e => e.status === 'done')
+};
 ```
 
 ### 🤖 2. Gemini AI Study Assistant
@@ -206,50 +204,52 @@ Câu cần phân tích: "${input}"`;
 
 **How it connects:**
 ```typescript
-// When you finish a Pomodoro session
-const completePomodoroSession = async (taskId: string, duration: number) => {
-  const session: PomodoroSession = {
-    id: generateId(),
-    taskId,
-    mode: 'focus',
-    duration,
-    completedAt: new Date(),
-    productivity: await getUserProductivityRating()
+// Integration service handles Pomodoro completion
+const completePomodoroSession = (session: PomodoroSessionData) => {
+  const newSession: PomodoroSession = {
+    ...session,
+    id: Date.now().toString(),
+    completedAt: new Date()
   };
   
-  // Updates multiple things at once
-  await Promise.all([
-    updateTaskActualTime(taskId, duration),
-    addPomodoroSession(session),
-    updateRelatedGoals(taskId, duration),
-    markProductivityHabits(session),
-    recalculateAnalytics()
-  ]);
+  // Updates task time and related systems
+  if (session.taskId) {
+    updateTaskActualTime(session.taskId, session.duration / 60);
+    updateAcademicGoals(session);
+    checkHabitCompletion(session);
+  }
 };
 ```
 
-### 🎯 4. Goals & Habits (Auto-Update)
-**What it does:** Track progress automatically from your completed tasks
+### 🎯 4. Goals & Habits (Smart Auto-Update)
+**What it does:** Track progress automatically from completed tasks, but lets you manually adjust when needed
 
-**Auto-Update System:**
+**Smart Update System:**
 ```typescript
-// Goals update themselves when you complete tasks
-const academicGoalUpdater = {
-  'weekly-study-hours': (completedTask) => {
-    if (completedTask.type === 'academic' && completedTask.actualTime) {
-      incrementGoalProgress('weekly-study-hours', completedTask.actualTime);
+// Goals can auto-update from completed tasks, but manual updates take priority
+const goalUpdateLogic = {
+  autoUpdate: (goal, completedTask) => {
+    // Only auto-update if user hasn't manually adjusted recently
+    if (!manuallyUpdatedGoals.has(goal.id)) {
+      if (completedTask.type === 'academic' && completedTask.actualTime) {
+        incrementGoalProgress(goal.id, completedTask.actualTime);
+      }
     }
   },
-  'daily-tasks': (completedTask) => {
-    incrementGoalProgress('daily-tasks', 1);
+  
+  manualUpdate: (goalId, newProgress) => {
+    // When user manually updates, disable auto-update temporarily
+    updateGoalProgress(goalId, newProgress);
+    addToManuallyUpdated(goalId);
   }
 };
 
-// Habits connect with Pomodoro
+// Habits connect with Pomodoro sessions
 const habitIntegration = {
   'daily-focus': {
     requiredPomodoroSessions: 2,
-    autoMarkComplete: true
+    autoMarkComplete: true,
+    manualOverride: true // User can manually mark as complete too
   }
 };
 ```
@@ -272,7 +272,7 @@ const procrastinationCoefficient = calculateFromHistory(
   completionDelays
 );
 
-// Suggests more realistic deadlines
+// Suggests more realistic deadlines based on patterns
 const realisticDeadline = originalDeadline - (bufferTime * procrastinationCoefficient);
 ```
 
@@ -286,35 +286,43 @@ const realisticDeadline = originalDeadline - (bufferTime * procrastinationCoeffi
 
 **Smart Features:**
 ```typescript
-// Detects when you have too much work on one day
-const detectDeadlineCollisions = (events: AcademicEvent[]) => {
-  return events.filter((event, index) => {
-    const conflicts = events.slice(index + 1).filter(other => 
-      isTimeOverlap(event, other) && 
-      calculateWorkload(event, other) > DAILY_CAPACITY
-    );
-    return conflicts.length > 0;
-  });
+// Shows events organized by time with visual indicators
+const calendarFeatures = {
+  monthView: 'Overview with event dots and colors',
+  weekView: 'Time-blocked weekly schedule',
+  dayView: 'Detailed daily agenda',
+  eventColors: 'Category-based color coding',
+  timeDisplay: 'Clear time formatting'
 };
 ```
 
 ### 🚨 7. "Do Now" View
-**What it does:** AI tells you what to work on right now
+**What it does:** Shows you what to work on right now with smart priority sorting
 
 **Smart Sorting:**
 ```typescript
-const prioritizeTasksAI = (tasks: AcademicEvent[]) => {
-  return tasks.sort((a, b) => {
-    const urgencyA = calculateUrgency(a.startTime, a.estimatedTime);
-    const importanceA = getImportanceScore(a.priority, a.type);
-    const procrastinationRiskA = getProcrastinationRisk(a.id);
-    
-    const scoreA = urgencyA * 0.4 + importanceA * 0.3 + procrastinationRiskA * 0.3;
-    const scoreB = calculateSimilarScore(b);
-    
-    return scoreB - scoreA; // Higher score = higher priority
-  });
-};
+const prioritizedTasks = useMemo(() => {
+  const now = new Date();
+  
+  return filteredEvents
+    .filter(event => event.status !== 'done')
+    .sort((a, b) => {
+      // Priority-based sorting
+      const priorityWeight = { high: 3, medium: 2, low: 1 };
+      const priorityA = priorityWeight[a.priority || 'medium'];
+      const priorityB = priorityWeight[b.priority || 'medium'];
+      
+      // Time urgency calculation
+      const urgencyA = getUrgencyScore(a.startTime, now);
+      const urgencyB = getUrgencyScore(b.startTime, now);
+      
+      // Combined scoring
+      const scoreA = priorityA * 0.6 + urgencyA * 0.4;
+      const scoreB = priorityB * 0.6 + urgencyB * 0.4;
+      
+      return scoreB - scoreA;
+    });
+}, [filteredEvents]);
 ```
 
 ---
@@ -380,19 +388,21 @@ const storageSystem = {
 };
 ```
 
-### ⚡ Performance Tricks
+### ⚡ Performance Optimizations
 ```typescript
-// Virtual scrolling for lots of tasks
-const VirtualizedEventList = React.memo(({ events }) => {
-  const visibleItems = useVirtualScrolling(events, ITEM_HEIGHT);
-  return <>{visibleItems.map(renderEventCard)}</>;
+// Memoized components for better performance
+const EventList = React.memo(({ events }) => {
+  const sortedEvents = useMemo(() => 
+    events.sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime()), 
+    [events]
+  );
+  return <>{sortedEvents.map(event => <EventCard key={event.id} event={event} />)}</>;
 });
 
-// Smart caching so it doesn't lag
-const dataCache = useMemo(() => new Map(), []);
-const cachedAnalytics = useCallback(
-  debounce(calculateAnalytics, 500),
-  [events]
+// Debounced analytics calculations
+const debouncedAnalytics = useCallback(
+  debounce((events) => calculateAnalytics(events), 300),
+  []
 );
 ```
 
@@ -403,25 +413,25 @@ const cachedAnalytics = useCallback(
 ### 📊 Data Flow
 
 ```
-📱 User Action
+📱 User Input (Vietnamese)
     ↓
-🧠 AI Processing (Gemini API)
+� AI Processing (Gemini API)
     ↓
-📝 Event Creation/Update
+📝 Event Creation/Update (Zustand Store)
     ↓
-💾 Database Save
+💾 LocalStorage Save
     ↓
-🔄 Integration Hub
+🔄 Integration Service
     ↓
 ┌─────────────────────────────────────┐
-│  📊 Analytics Engine               │
-│  🎯 Goal Progress Updater          │
-│  🔄 Habit Status Manager           │
-│  ⏱️ Pomodoro Session Tracker       │
-│  📈 Productivity Calculator        │
+│  📊 Analytics Calculation          │
+│  🎯 Goal Progress Updates           │
+│  🔄 Habit Status Checks            │
+│  ⏱️ Pomodoro Session Tracking      │
+│  📈 Productivity Score Calculation │
 └─────────────────────────────────────┘
     ↓
-📱 UI Updates (All 5 Views)
+📱 Real-time UI Updates (5 Views)
 ```
 
 ### 🔄 Integration Events
@@ -480,27 +490,42 @@ class SmartSync {
 
 ### 🎯 Design Choices
 - **📱 Mobile-First:** Made for Vietnamese students who use phones a lot
-- **🎨 Context Colors:** UI changes color based on task urgency
-- **⚡ Smooth Animations:** Provides feedback and looks nice
-- **♿ Accessibility:** Works with screen readers and keyboard navigation
+- **🎨 Context Colors:** UI changes color based on task urgency with visual indicators
+- **⚡ Smooth Animations:** Provides feedback with fadeIn, pulse, and hover effects
+- **♿ Accessibility:** Reduced motion support, tooltips, and Mantine UI accessibility features
 - **🇻🇳 Vietnamese-Friendly:** Typography and colors that work for Vietnamese users
 
 ### 🌈 Visual Hierarchy System
 ```css
-/* Urgency-based color system */
-.task-urgent { background: linear-gradient(135deg, #ff6b6b, #ee5a52); }
-.task-important { background: linear-gradient(135deg, #feca57, #ff9f43); }
-.task-normal { background: linear-gradient(135deg, #48dbfb, #0abde3); }
-.task-completed { background: linear-gradient(135deg, #58e858, #3dd13d); }
+/* Urgency-based indicator system */
+.urgency-critical { 
+  background: #ff6b6b;
+  box-shadow: 0 0 8px rgba(255, 107, 107, 0.4);
+  animation: urgentPulse 2s infinite;
+}
+.urgency-urgent { 
+  background: #ffa726;
+  box-shadow: 0 0 6px rgba(255, 167, 38, 0.4);
+}
+.urgency-normal { 
+  background: #74b9ff;
+  box-shadow: 0 0 4px rgba(116, 185, 255, 0.3);
+}
+.urgency-completed { 
+  background: #00b894;
+  box-shadow: 0 0 6px rgba(0, 184, 148, 0.4);
+}
 
 /* Smooth state transitions */
-.task-card {
+.event-card-animated {
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  transform: translateY(0);
+  animation: fadeInUp 0.5s ease-out;
 }
-.task-card:hover {
+.event-card-animated:hover {
   transform: translateY(-4px);
-  box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+  box-shadow: 
+    0 12px 25px rgba(0, 0, 0, 0.1),
+    0 0 20px rgba(116, 185, 255, 0.2);
 }
 ```
 
@@ -515,8 +540,8 @@ class SmartSync {
 | **✅ Full CRUD Operations** | ✅ Done | Create, Read, Update, Delete events with localStorage | `src/store/eventStore.ts` - CRUD with error handling |
 | **✅ Persistent Storage** | ✅ Done | localStorage with migration system and error recovery | `src/services/databaseService.ts` - Storage layer |
 | **✅ 3+ Different Views** | ✅ **5 Views** | Dashboard, Calendar (Day/Week/Month), Analytics, Do-Now, AI Assistant | `src/pages/` - Each view shows different data |
-| **✅ Time/Date Handling** | ✅ Done | Vietnamese time expressions, academic calendars, timezone support | `src/utils/dateUtils.ts` - Date processing |
-| **✅ 20+ Items Support** | ✅ Done | Virtual scrolling, lazy loading, tested with 100+ events | Performance optimizations throughout |
+| **✅ Time/Date Handling** | ✅ Done | Vietnamese time expressions, date formatting and parsing | `src/utils/dateUtils.ts` - Date processing |
+| **✅ 20+ Items Support** | ✅ Done | Performance optimized rendering, tested with many events | Performance optimizations throughout |
 
 ### 🚀 Extra Features
 
@@ -526,26 +551,26 @@ class SmartSync {
 | **🔄 System Integration** | ✅ Done | Real-time sync between Pomodoro, goals, habits, tasks | Everything updates automatically |
 | **📊 Analytics Engine** | ✅ Working | Procrastination tracking, productivity scoring, trend analysis | Helps understand study patterns |
 | **⏱️ Time Intelligence** | ✅ Smart | Automatic time tracking, realistic estimation, pattern learning | Solves time management issues |
-| **🎯 Goal Automation** | ✅ Smart | Auto-updating goals based on task completion and focus sessions | No manual goal tracking needed |
+| **🎯 Goal Automation** | ✅ Smart | Smart auto-updating goals with manual override protection | Intelligent progress tracking with conflict resolution |
 
 ### 🏆 Code Stats
 
 ```bash
 # Project Numbers
-📁 Total Files: 47
-📝 TypeScript Coverage: 95%
-🧪 Error Handling: Throughout the app
-⚡ Performance: Optimized for 100+ items
-🎨 UI Components: 15+ reusable components
+📁 Total Files: 61 (43 TypeScript files)
+📝 TypeScript Usage: Modern TS/TSX throughout
+🧪 Error Handling: Comprehensive error handling
+⚡ Performance: Optimized rendering for many items
+🎨 UI Components: 18 reusable components
 🔧 Services: 8 specialized service modules
 📊 Store Management: 3 Zustand stores
 ```
 
 ### 🎯 User Experience Testing
 
-- **⚡ Load Time:** < 2 seconds on 3G
+- **⚡ Load Time:** Fast development builds with Vite
 - **📱 Responsive:** Works on mobile and desktop
-- **♿ Accessibility:** Screen reader compatible, keyboard navigation
+- **♿ Accessibility:** Reduced motion support and semantic HTML
 - **🔄 Data Sync:** Updates across all views
 - **🚨 Error Recovery:** Handles API failures and data issues
 
@@ -625,39 +650,39 @@ const aiServices = {
 ### 🎯 Technical Stuff
 - **🔥 Modern Stack:** React 19 + TypeScript 5.8 + Vite 7.1
 - **🤖 Working AI:** Google Gemini integration with error handling
-- **⚡ Performance:** Optimized for 100+ items with virtual scrolling
+- **⚡ Performance:** Optimized for 100+ items
 - **📱 Responsive:** Mobile-first design with accessibility
 - **🔄 Real-time Sync:** Event-driven updates across all views
 
 ### 🧠 Cool Innovation
-- **🎯 Procrastination Learning:** App learns your patterns for realistic time estimates
+- **🎯 Pattern Learning:** App analyzes your work patterns for realistic time estimates
 - **🔄 System Integration:** Everything connects and updates automatically
-- **🇻🇳 Vietnamese Optimization:** AI trained for Vietnamese academic context
-- **📊 Smart Analytics:** Multi-dimensional productivity insights
-- **⏱️ Smart Time Management:** Automatic time tracking and goal updates
+- **🇻🇳 Vietnamese Optimization:** AI assistant trained for Vietnamese academic context
+- **📊 Smart Analytics:** Multi-dimensional productivity insights with trend analysis
+- **⏱️ Smart Time Management:** Automatic time tracking and intelligent goal updates
 
 ### 🎨 User Experience
 - **🎨 Modern UI:** Gradient-based design with smooth animations
 - **🚨 Context-Aware Alerts:** Visual urgency system with smart notifications
 - **📱 Cross-Platform:** Works well on all devices
-- **♿ Accessibility:** Full keyboard navigation and screen reader support
+- **♿ Accessibility:** Reduced motion support and semantic HTML structure
 
 ---
 
 ## 📋 Final Checklist
 
-- [x] **✅ Code runs without errors** - Tested across browsers and devices
+- [x] **✅ Code runs without errors** - Fully functional with error handling
 - [x] **📝 All required features implemented** - Complete CRUD with extra functionality
 - [x] **🔄 Full CRUD operations** - Create, read, update, delete with real-time persistence
 - [x] **💾 Persistent storage** - localStorage with migration and error recovery
 - [x] **👀 3+ different views** - **5 views:** Dashboard, Calendar, Analytics, Do-Now, AI Assistant
-- [x] **⏰ Time/date handling** - Vietnamese time parsing and academic calendar support
-- [x] **📊 Supports 20+ items** - Performance optimized with virtual scrolling
+- [x] **⏰ Time/date handling** - Vietnamese time parsing and date formatting
+- [x] **📊 Supports 20+ items** - Performance optimized rendering
 - [x] **📖 All documentation complete** - README with technical details and workflows
 - [x] **🤖 AI integration** - Working Gemini API with Vietnamese language optimization
 - [x] **🔄 System integration** - Real-time sync across all modules
 - [x] **🎨 Modern UI/UX design** - Responsive, accessible interface
-- [x] **🚀 Production deployment ready** - Optimized builds with Vercel and Netlify
+- [x] **🚀 Production deployment ready** - Optimized builds with Vercel deployment
 
 ---
 
@@ -666,9 +691,9 @@ const aiServices = {
 The **Smart Academic Planner** is my attempt at solving Vietnamese university students' time management challenges. By combining AI technology with thoughtful design and smart system integration, I've built a platform that doesn't just manage tasks—it helps students understand and improve their academic habits.
 
 **What Makes It Special:**
-- 🧠 **AI-First Approach:** Natural language task creation with Vietnamese optimization
+- 🧠 **AI-Enhanced Approach:** Natural language task creation with Vietnamese optimization
 - 🔄 **Everything Connected:** All parts of the app work together and update automatically
-- 📊 **Learning Engine:** App learns from your patterns for continuous improvement
+- 📊 **Pattern Learning:** App analyzes your patterns for continuous improvement
 - 🎯 **Student-Focused:** Built specifically for Vietnamese academic culture
 
 This project shows both my technical skills and understanding of real student needs, solved through creative technology integration.
