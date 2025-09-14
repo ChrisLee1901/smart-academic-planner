@@ -83,19 +83,36 @@ class AdvancedAIService {
   }
 
   private async extractTaskInfoWithGemini(input: string): Promise<any> {
-    const prompt = `Phân tích câu sau và trích xuất thông tin tạo sự kiện/nhiệm vụ. Trả lời bằng JSON:
+    const today = new Date();
+    const todayStr = `${today.getDate()}/${today.getMonth() + 1}/${today.getFullYear()}`;
+    
+    const prompt = `Hôm nay là ${todayStr}. Phân tích câu sau và trích xuất thông tin tạo sự kiện/nhiệm vụ. 
 
+QUAN TRỌNG về thời gian:
+- "3 ngày sau" = ngày ${today.getDate() + 3}/${today.getMonth() + 1}
+- "ngày mai", "mai" = ngày ${today.getDate() + 1}/${today.getMonth() + 1}
+- "ngày sau", "hôm sau" = ngày ${today.getDate() + 1}/${today.getMonth() + 1}
+- "tuần sau", "tuần tới" = ngày ${today.getDate() + 7}/${today.getMonth() + 1}
+- Thứ trong tuần: luôn tính từ tuần tiếp theo nếu không chỉ định rõ
+- Nếu có số + "ngày sau": cộng thêm số ngày đó vào hôm nay
+
+Trả lời bằng JSON chính xác:
 {
-  "title": "tên nhiệm vụ",
+  "title": "tên nhiệm vụ rõ ràng",
   "type": "deadline/class/project/meeting/exam/personal",
-  "date": "ngày tháng năm hoặc ngày tương đối",
-  "time": "giờ phút",
+  "date": "ngày cụ thể hoặc cụm từ thời gian (ưu tiên ngày cụ thể)",
+  "time": "giờ phút cụ thể",
   "priority": "high/medium/low",
   "course": "tên môn học nếu có",
   "confidence": 0.0-1.0,
   "error": "lỗi nếu không đủ thông tin",
-  "suggestions": ["gợi ý 1", "gợi ý 2"]
+  "suggestions": ["gợi ý cụ thể"]
 }
+
+Ví dụ tốt:
+- "3 ngày sau" → "date": "${today.getDate() + 3}/${today.getMonth() + 1}/${today.getFullYear()}"
+- "thứ 2 tuần sau" → "date": "thứ hai"
+- "mai lúc 5 giờ chiều" → "date": "ngày mai", "time": "5 giờ chiều"
 
 Câu cần phân tích: "${input}"`;
 
@@ -118,20 +135,121 @@ Câu cần phân tích: "${input}"`;
   }
 
   private parseDateTime(dateStr?: string, timeStr?: string): Date {
-    let dateTime = new Date();
+    const now = new Date();
+    let dateTime = new Date(now);
     
     if (dateStr) {
-      if (dateStr.includes('mai')) {
-        dateTime = new Date(Date.now() + 24 * 60 * 60 * 1000);
-      } else if (dateStr.includes('tuần sau')) {
-        dateTime = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+      const dateInput = dateStr.toLowerCase();
+      
+      // Xử lý các cụm từ ngày tương đối
+      if (dateInput.includes('hôm nay')) {
+        // Giữ nguyên ngày hiện tại
+      } else if (dateInput.includes('ngày mai') || dateInput.includes('mai')) {
+        dateTime.setDate(dateTime.getDate() + 1);
+      } else if (dateInput.includes('ngày sau') || dateInput.includes('hôm sau')) {
+        dateTime.setDate(dateTime.getDate() + 1);
+      } else if (dateInput.includes('ngày kia')) {
+        dateTime.setDate(dateTime.getDate() + 2);
+      } else if (dateInput.includes('tuần sau') || dateInput.includes('tuần tới')) {
+        dateTime.setDate(dateTime.getDate() + 7);
+      } else if (dateInput.includes('tháng sau') || dateInput.includes('tháng tới')) {
+        dateTime.setMonth(dateTime.getMonth() + 1);
+      }
+      
+      // Xử lý "X ngày sau", "X tuần sau", etc.
+      const relativeDayMatch = dateInput.match(/(\d+)\s*ngày\s*sau/);
+      if (relativeDayMatch) {
+        const days = parseInt(relativeDayMatch[1]);
+        dateTime.setDate(dateTime.getDate() + days);
+      }
+      
+      const relativeWeekMatch = dateInput.match(/(\d+)\s*tuần\s*sau/);
+      if (relativeWeekMatch) {
+        const weeks = parseInt(relativeWeekMatch[1]);
+        dateTime.setDate(dateTime.getDate() + (weeks * 7));
+      }
+      
+      const relativeMonthMatch = dateInput.match(/(\d+)\s*tháng\s*sau/);
+      if (relativeMonthMatch) {
+        const months = parseInt(relativeMonthMatch[1]);
+        dateTime.setMonth(dateTime.getMonth() + months);
+      }
+      
+      // Xử lý thứ trong tuần
+      const dayOfWeekMap: { [key: string]: number } = {
+        'chủ nhật': 0, 'cn': 0,
+        'thứ hai': 1, 't2': 1, 'thứ 2': 1,
+        'thứ ba': 2, 't3': 2, 'thứ 3': 2,
+        'thứ tư': 3, 't4': 3, 'thứ 4': 3,
+        'thứ năm': 4, 't5': 4, 'thứ 5': 4,
+        'thứ sáu': 5, 't6': 5, 'thứ 6': 5,
+        'thứ bảy': 6, 't7': 6, 'thứ 7': 6
+      };
+      
+      for (const [dayName, dayNumber] of Object.entries(dayOfWeekMap)) {
+        if (dateInput.includes(dayName)) {
+          const currentDay = dateTime.getDay();
+          let daysToAdd = dayNumber - currentDay;
+          if (daysToAdd <= 0) daysToAdd += 7; // Nếu là ngày trong tuần này thì chuyển sang tuần sau
+          dateTime.setDate(dateTime.getDate() + daysToAdd);
+          break;
+        }
+      }
+      
+      // Xử lý ngày cụ thể (dd/mm, dd/mm/yyyy)
+      const dateMatch = dateInput.match(/(\d{1,2})\/(\d{1,2})(?:\/(\d{4}))?/);
+      if (dateMatch) {
+        const day = parseInt(dateMatch[1]);
+        const month = parseInt(dateMatch[2]) - 1; // JavaScript months are 0-indexed
+        const year = dateMatch[3] ? parseInt(dateMatch[3]) : dateTime.getFullYear();
+        dateTime = new Date(year, month, day);
       }
     }
     
+    // Xử lý thời gian
     if (timeStr) {
-      const timeMatch = timeStr.match(/(\d{1,2}):?(\d{0,2})/);
+      const timeInput = timeStr.toLowerCase();
+      
+      // Xử lý giờ cụ thể (HH:mm, HH giờ mm, etc.)
+      let timeMatch = timeInput.match(/(\d{1,2}):(\d{2})/);
       if (timeMatch) {
-        dateTime.setHours(parseInt(timeMatch[1]), parseInt(timeMatch[2] || '0'));
+        dateTime.setHours(parseInt(timeMatch[1]), parseInt(timeMatch[2]), 0, 0);
+      } else {
+        timeMatch = timeInput.match(/(\d{1,2})\s*giờ\s*(\d{1,2})?/);
+        if (timeMatch) {
+          const hour = parseInt(timeMatch[1]);
+          const minute = timeMatch[2] ? parseInt(timeMatch[2]) : 0;
+          dateTime.setHours(hour, minute, 0, 0);
+        } else {
+          timeMatch = timeInput.match(/(\d{1,2})h(\d{2})?/);
+          if (timeMatch) {
+            const hour = parseInt(timeMatch[1]);
+            const minute = timeMatch[2] ? parseInt(timeMatch[2]) : 0;
+            dateTime.setHours(hour, minute, 0, 0);
+          }
+        }
+      }
+      
+      // Xử lý AM/PM
+      if (timeInput.includes('chiều') || timeInput.includes('pm')) {
+        const currentHour = dateTime.getHours();
+        if (currentHour < 12) {
+          dateTime.setHours(currentHour + 12);
+        }
+      } else if (timeInput.includes('sáng') || timeInput.includes('am')) {
+        const currentHour = dateTime.getHours();
+        if (currentHour >= 12) {
+          dateTime.setHours(currentHour - 12);
+        }
+      }
+      
+      // Xử lý các cụm từ thời gian đặc biệt
+      if (timeInput.includes('trua')) {
+        dateTime.setHours(12, 0, 0, 0);
+      } else if (timeInput.includes('tối')) {
+        dateTime.setHours(19, 0, 0, 0);
+      } else if (timeInput.includes('khuya')) {
+        dateTime.setHours(22, 0, 0, 0);
       }
     }
     
@@ -140,8 +258,21 @@ Câu cần phân tích: "${input}"`;
 
   private fallbackParsing(input: string): ParsedEventData {
     const text = input.toLowerCase().trim();
-    const titleMatch = text.match(/(?:nộp|deadline|học|họp|thi)\s+(.+?)(?:\s+(?:vào|lúc|ngày)|$)/i);
-    const title = titleMatch ? titleMatch[1].trim() : text;
+    
+    // Trích xuất tiêu đề
+    let title = text;
+    const titlePatterns = [
+      /(?:nộp|deadline|học|họp|thi|làm)\s+(.+?)(?:\s+(?:vào|lúc|ngày|trong|sau)|$)/i,
+      /(.+?)(?:\s+(?:vào|lúc|ngày|trong|sau)\s+)/i
+    ];
+    
+    for (const pattern of titlePatterns) {
+      const match = text.match(pattern);
+      if (match && match[1]) {
+        title = match[1].trim();
+        break;
+      }
+    }
     
     if (!title) {
       return {
@@ -151,24 +282,86 @@ Câu cần phân tích: "${input}"`;
       };
     }
 
-    const hasTime = /(?:mai|tuần sau|hôm nay|\d{1,2}\/\d{1,2}|\d{1,2}:\d{2})/i.test(text);
-    
-    if (!hasTime) {
+    // Trích xuất thông tin thời gian
+    const timePatterns = {
+      date: [
+        /(\d+)\s*ngày\s*sau/,
+        /(\d+)\s*tuần\s*sau/,
+        /(hôm nay|ngày mai|mai|ngày sau|hôm sau|ngày kia|tuần sau|tuần tới)/,
+        /(thứ\s+(?:hai|ba|tư|năm|sáu|bảy)|chủ nhật)/,
+        /(\d{1,2}\/\d{1,2}(?:\/\d{4})?)/
+      ],
+      time: [
+        /(\d{1,2}):(\d{2})/,
+        /(\d{1,2})\s*giờ\s*(\d{1,2})?/,
+        /(\d{1,2})h(\d{2})?/,
+        /(sáng|trua|chiều|tối|khuya)/,
+        /(am|pm)/
+      ]
+    };
+
+    let dateStr = '';
+    let timeStr = '';
+
+    // Tìm thông tin ngày
+    for (const pattern of timePatterns.date) {
+      const match = text.match(pattern);
+      if (match) {
+        dateStr = match[0];
+        break;
+      }
+    }
+
+    // Tìm thông tin giờ
+    for (const pattern of timePatterns.time) {
+      const match = text.match(pattern);
+      if (match) {
+        timeStr = match[0];
+        break;
+      }
+    }
+
+    // Nếu không có thông tin thời gian nào
+    if (!dateStr && !timeStr) {
       return {
         confidence: 0.3,
-        event: { title, type: 'personal', status: 'todo' as const, priority: 'medium' },
-        error: "Vui lòng cung cấp ngày hoặc thời hạn cho nhiệm vụ"
+        event: { 
+          title, 
+          type: 'personal', 
+          status: 'todo' as const, 
+          priority: 'medium'
+        },
+        error: "Vui lòng cung cấp ngày hoặc thời hạn cho nhiệm vụ",
+        suggestions: [
+          'Ví dụ: "' + title + ' vào mai lúc 5 giờ chiều"',
+          'Thêm thông tin thời gian như "3 ngày sau", "thứ 2 tuần sau"'
+        ]
       };
     }
 
+    // Sử dụng parseDateTime để xử lý thời gian
+    const parsedDate = this.parseDateTime(dateStr, timeStr);
+    
+    // Xác định loại sự kiện
+    let eventType: AcademicEvent['type'] = 'personal';
+    if (text.includes('nộp') || text.includes('deadline')) eventType = 'deadline';
+    else if (text.includes('học') || text.includes('lớp')) eventType = 'class';
+    else if (text.includes('dự án') || text.includes('project')) eventType = 'project';
+    else if (text.includes('thi') || text.includes('họp')) eventType = 'deadline'; // Thi và họp coi như deadline
+
+    // Xác định độ ưu tiên
+    let priority: 'high' | 'medium' | 'low' = 'medium';
+    if (text.includes('gấp') || text.includes('quan trọng')) priority = 'high';
+    else if (text.includes('không gấp') || text.includes('thường')) priority = 'low';
+
     return {
-      confidence: 0.6,
+      confidence: 0.8,
       event: {
         title,
-        type: 'deadline',
-        startTime: new Date(),
+        type: eventType,
+        startTime: parsedDate,
         status: 'todo' as const,
-        priority: 'medium'
+        priority
       }
     };
   }
