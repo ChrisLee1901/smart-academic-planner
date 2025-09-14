@@ -80,7 +80,7 @@ An **AI-powered academic planning app** made specifically for Vietnamese student
 | **✅ Persistent Storage** | localStorage with data recovery | `src/services/migrationService.ts` |
 | **✅ 3+ Different Views** | **5 Views:** Dashboard, Calendar, Analytics, Do-Now, AI Assistant | `src/pages/` directory |
 | **✅ Time/Date Handling** | Date parsing, Vietnamese time expressions | `src/utils/dateUtils.ts`, `src/services/aiService.ts` |
-| **✅ 20+ Items Support** | Tested with 100+ events, optimized rendering | Performance tested throughout |
+| **✅ 20+ Items Support** | Tested with 20+ events, optimized rendering | Performance tested throughout |
 
 ### 🔄 System Integration Pipeline
 
