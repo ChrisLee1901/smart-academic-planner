@@ -159,10 +159,17 @@ function App() {
     initializeStore().catch(console.error);
   }, [initializeStore]);
 
+  // Enhanced tab change handler with scroll to top
+  const handleTabChange = (tab: string) => {
+    setActiveTab(tab);
+    // Smooth scroll to top when changing tabs
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   const renderContent = () => {
     switch (activeTab) {
       case 'dashboard':
-        return <Dashboard onTabChange={setActiveTab} />;
+        return <Dashboard onTabChange={handleTabChange} />;
       case 'do-now':
         return <DoNowView />;
       case 'calendar':
@@ -172,7 +179,7 @@ function App() {
       case 'ai':
         return <AIAssistantView />;
       default:
-        return <Dashboard onTabChange={setActiveTab} />;
+        return <Dashboard onTabChange={handleTabChange} />;
     }
   };
 
@@ -199,7 +206,7 @@ function App() {
             {error}
           </div>
         )}
-        <MainLayout activeTab={activeTab} onTabChange={setActiveTab}>
+        <MainLayout activeTab={activeTab} onTabChange={handleTabChange}>
           {isLoading ? (
             <div style={{ 
               display: 'flex', 
