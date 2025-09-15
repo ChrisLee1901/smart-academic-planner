@@ -95,9 +95,11 @@ export function ProductivityAnalytics() {
     const totalCompleted = completedEvents.length;
     const totalTime = completedEvents.reduce((sum, e) => sum + (e.actualTime || e.estimatedTime || 0), 0);
     
-    // Calculate streak days
+    // Calculate streak days - consecutive days with completed tasks
     let streak = 0;
     const today = dayjs();
+    
+    // Start from today and go backwards
     for (let i = 0; i < 365; i++) {
       const checkDate = today.subtract(i, 'day');
       const dayEvents = events.filter(e => 
@@ -107,18 +109,41 @@ export function ProductivityAnalytics() {
       if (dayEvents.length > 0) {
         streak++;
       } else {
-        break;
+        // If today has no completed tasks, don't break immediately
+        // Allow one day gap if this is the first day checked
+        if (i === 0) {
+          continue;
+        } else {
+          break;
+        }
       }
     }
 
-    // Calculate focus score based on actual vs estimated time
-    const focusEvents = completedEvents.filter(e => e.actualTime && e.estimatedTime);
-    const focusScore = focusEvents.length > 0 
-      ? focusEvents.reduce((sum, e) => {
-          const efficiency = Math.min(e.estimatedTime! / e.actualTime!, 1);
+    // Calculate focus score based on task completion consistency and time efficiency
+    const recentEvents = events.filter(e => 
+      dayjs(e.startTime).isAfter(dayjs().subtract(7, 'day'))
+    );
+    
+    const completedRecent = recentEvents.filter(e => e.status === 'done');
+    const timeEfficiencyEvents = completedRecent.filter(e => e.actualTime && e.estimatedTime);
+    
+    let focusScore = 0;
+    if (recentEvents.length > 0) {
+      // Base score from completion rate (50% weight)
+      const recentCompletionRate = (completedRecent.length / recentEvents.length) * 50;
+      
+      // Time efficiency score (50% weight)
+      let timeEfficiency = 50; // Default if no time data
+      if (timeEfficiencyEvents.length > 0) {
+        const avgEfficiency = timeEfficiencyEvents.reduce((sum, e) => {
+          const efficiency = Math.min(e.estimatedTime! / (e.actualTime! || 1), 1);
           return sum + efficiency;
-        }, 0) / focusEvents.length * 100
-      : 0;
+        }, 0) / timeEfficiencyEvents.length;
+        timeEfficiency = avgEfficiency * 50;
+      }
+      
+      focusScore = recentCompletionRate + timeEfficiency;
+    }
 
     // Calculate productivity trend (last 7 days vs previous 7 days)
     const lastWeek = events.filter(e => 

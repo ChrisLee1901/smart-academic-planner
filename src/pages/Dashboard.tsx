@@ -389,7 +389,7 @@ export function Dashboard({ onTabChange }: DashboardProps) {
           <Grid gutter="md">
             {/* Kanban Columns */}
             <Grid.Col span={{ base: 12, lg: isPanelVisible ? 8 : 12 }}>
-              <Grid gutter="md">
+              <Grid gutter="sm">
                 <Grid.Col span={{ base: 12, sm: 4 }}>
                   <KanbanColumn
                     title="📝 Cần làm"

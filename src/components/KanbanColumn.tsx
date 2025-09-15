@@ -102,8 +102,12 @@ export function KanbanColumn({
 
   return (
     <>
-    <Paper withBorder p="md" radius="md" style={{ height: 'fit-content', minHeight: '400px' }}>
-      <Stack gap="md">
+    <Paper withBorder p="sm" radius="md" style={{ 
+      height: 'fit-content', 
+      minHeight: '400px',
+      overflow: 'hidden' // Prevent cards from overflowing
+    }}>
+      <Stack gap="sm">
         {/* Column Header */}
         <Group justify="space-between">
           <Stack gap="xs">
@@ -216,7 +220,11 @@ export function KanbanColumn({
         </Group>
 
         {/* Events List */}
-        <Stack gap="sm">
+        <Stack gap="xs" style={{ 
+          overflow: 'visible', // Allow some overflow for hover effects but not too much
+          padding: '0 2px', // Small padding to contain shadows
+          margin: '0 -2px' // Negative margin to compensate padding
+        }}>
           {filteredEvents.length > 0 && (
             filteredEvents.map(event => (
               <TaskCard

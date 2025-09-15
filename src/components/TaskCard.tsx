@@ -109,20 +109,20 @@ export function TaskCard({ event, onEdit, onDelete, onStatusChange, onClick }: T
       )}
       
       <Card 
-        shadow={isHovered ? "xl" : "md"}
-        padding="md" 
-        radius="xl" 
+        shadow={isHovered ? "lg" : "sm"}
+        padding="sm" 
+        radius="md" 
         withBorder
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
         onClick={() => onClick?.(event)}
         style={{
-          transform: isHovered ? 'translateY(-4px) scale(1.02)' : 'translateY(0) scale(1)',
-          transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+          transform: isHovered ? 'translateY(-2px) scale(1.01)' : 'translateY(0) scale(1)',
+          transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
           background: isHovered 
             ? 'linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.85) 100%)'
             : 'linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(255, 255, 255, 0.7) 100%)',
-          backdropFilter: 'blur(15px)',
+          backdropFilter: 'blur(10px)',
           border: urgencyLevel === 'critical' 
             ? `2px solid ${urgencyInfo.borderColor}` 
             : urgencyLevel === 'urgent' 
@@ -130,12 +130,13 @@ export function TaskCard({ event, onEdit, onDelete, onStatusChange, onClick }: T
               : `2px solid ${isHovered ? 'rgba(102, 126, 234, 0.3)' : 'rgba(255, 255, 255, 0.2)'}`,
           boxShadow: isHovered 
             ? urgencyLevel === 'critical'
-              ? `0 20px 40px rgba(0, 0, 0, 0.15), 0 0 20px ${urgencyInfo.color}15`
-              : '0 20px 40px rgba(0, 0, 0, 0.15), 0 0 20px rgba(102, 126, 234, 0.1)'
-            : '0 8px 25px rgba(0, 0, 0, 0.08)',
+              ? `0 8px 20px rgba(0, 0, 0, 0.12), 0 0 15px ${urgencyInfo.color}15`
+              : '0 8px 20px rgba(0, 0, 0, 0.12), 0 0 15px rgba(102, 126, 234, 0.1)'
+            : '0 2px 8px rgba(0, 0, 0, 0.06)',
           position: 'relative',
           overflow: 'hidden',
           cursor: onClick ? 'pointer' : 'default',
+          maxWidth: '100%', // Ensure it doesn't overflow container
           ...(urgencyLevel === 'critical' && {
             animation: 'urgentPulse 3s infinite'
           })
@@ -164,10 +165,10 @@ export function TaskCard({ event, onEdit, onDelete, onStatusChange, onClick }: T
               {/* Type Icon */}
               <div
                 style={{
-                  fontSize: '18px',
-                  filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.2))',
-                  transform: isHovered ? 'scale(1.1) rotate(5deg)' : 'scale(1) rotate(0deg)',
-                  transition: 'all 0.3s ease',
+                  fontSize: '16px',
+                  filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.2))',
+                  transform: isHovered ? 'scale(1.05) rotate(3deg)' : 'scale(1) rotate(0deg)',
+                  transition: 'all 0.2s ease',
                 }}
               >
                 {getTypeIcon(event.type)}
@@ -175,15 +176,16 @@ export function TaskCard({ event, onEdit, onDelete, onStatusChange, onClick }: T
 
               {/* Title */}
               <Text 
-                fw={700} 
+                fw={600} 
                 size="sm" 
                 lineClamp={2} 
                 style={{ 
                   flex: 1,
                   color: '#2c3e50',
                   textShadow: '0 1px 2px rgba(255, 255, 255, 0.8)',
-                  transition: 'all 0.3s ease',
-                  transform: isHovered ? 'scale(1.01)' : 'scale(1)',
+                  transition: 'all 0.2s ease',
+                  fontSize: '13px',
+                  lineHeight: 1.3,
                 }}
               >
                 {event.title}

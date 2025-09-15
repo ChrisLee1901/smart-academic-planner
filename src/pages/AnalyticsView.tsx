@@ -22,9 +22,7 @@ import {
   IconTarget,
   IconCalendarTime,
   IconBrain,
-  IconFlame,
-  IconMoodSmile,
-  IconMoodSad
+  IconFlame
   // IconAlertTriangle,
   // IconCheckbox
 } from '@tabler/icons-react';
@@ -42,6 +40,7 @@ interface ProductivityMetrics {
   weeklyPattern: Record<string, number>;
   procrastinationScore: number;
   streakCount: number;
+  focusScore: number;
 }
 
 export function AnalyticsView() {
@@ -105,16 +104,50 @@ export function AnalyticsView() {
     // Streak count (consecutive days with completed tasks)
     let streakCount = 0;
     let currentDate = now;
-    while (streakCount < 30) {
-      const hasCompletedTask = recentEvents.some(event => 
+    let checkDays = 0;
+    const maxCheckDays = 365; // Check up to a year
+    
+    while (checkDays < maxCheckDays) {
+      const hasCompletedTask = events.some(event => 
         dayjs(event.startTime).isSame(currentDate, 'day') && event.status === 'done'
       );
+      
       if (hasCompletedTask) {
         streakCount++;
         currentDate = currentDate.subtract(1, 'day');
+        checkDays++;
       } else {
-        break;
+        // Allow up to 1 day gap if we're checking the first day (today)
+        if (checkDays === 0) {
+          currentDate = currentDate.subtract(1, 'day');
+          checkDays++;
+          continue;
+        } else {
+          break;
+        }
       }
+    }
+
+    // Calculate focus score based on task completion and time efficiency
+    const recentCompletedEvents = recentEvents.filter(e => e.status === 'done');
+    const timeEfficiencyEvents = recentCompletedEvents.filter(e => e.actualTime && e.estimatedTime);
+    
+    let focusScore = 0;
+    if (recentEvents.length > 0) {
+      // Base score from completion rate (60% weight)
+      const baseScore = completionRate * 0.6;
+      
+      // Time efficiency score (40% weight)
+      let efficiencyScore = 40; // Default if no time data
+      if (timeEfficiencyEvents.length > 0) {
+        const avgEfficiency = timeEfficiencyEvents.reduce((sum, e) => {
+          const efficiency = Math.min(e.estimatedTime! / (e.actualTime! || 1), 1);
+          return sum + efficiency;
+        }, 0) / timeEfficiencyEvents.length;
+        efficiencyScore = avgEfficiency * 40;
+      }
+      
+      focusScore = Math.round(baseScore + efficiencyScore);
     }
 
     return {
@@ -126,7 +159,8 @@ export function AnalyticsView() {
       productivityByType,
       weeklyPattern,
       procrastinationScore,
-      streakCount
+      streakCount,
+      focusScore
     };
   }, [events]);
 
@@ -140,13 +174,6 @@ export function AnalyticsView() {
     if (rate >= 60) return 'yellow';
     if (rate >= 40) return 'orange';
     return 'red';
-  };
-
-  const getProcrastinationLevel = (score: number) => {
-    if (score <= 20) return { label: 'Rất tốt', color: 'green' };
-    if (score <= 40) return { label: 'Khá tốt', color: 'yellow' };
-    if (score <= 60) return { label: 'Cần cải thiện', color: 'orange' };
-    return { label: 'Cần chú ý', color: 'red' };
   };
 
   const formatHour = (hour: number) => {
@@ -231,17 +258,17 @@ export function AnalyticsView() {
                 size={60} 
                 radius="xl" 
                 variant="light" 
-                color={getProcrastinationLevel(analytics.procrastinationScore).color}
+                color={analytics.focusScore >= 70 ? 'green' : analytics.focusScore >= 40 ? 'orange' : 'red'}
                 mb="sm"
               >
-                {analytics.procrastinationScore <= 40 ? <IconMoodSmile size={30} /> : <IconMoodSad size={30} />}
+                <IconBrain size={30} />
               </ThemeIcon>
-              <Text size="lg" fw={700} c={getProcrastinationLevel(analytics.procrastinationScore).color}>
-                {getProcrastinationLevel(analytics.procrastinationScore).label}
+              <Text size="xl" fw={700} c={analytics.focusScore >= 70 ? 'green' : analytics.focusScore >= 40 ? 'orange' : 'red'}>
+                {Math.round(analytics.focusScore)}%
               </Text>
-              <Text fw={600} mb="xs">Chỉ số trì hoãn</Text>
+              <Text fw={600} mb="xs">Chỉ số tập trung</Text>
               <Text size="sm" c="dimmed">
-                {Math.round(analytics.procrastinationScore)}% tasks quá hạn
+                Hiệu quả hoàn thành task
               </Text>
             </Card>
           </Grid.Col>
