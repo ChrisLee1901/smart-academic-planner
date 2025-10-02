@@ -9,12 +9,25 @@
 ### 🔗 Live Demo
 **🌐 Production URL:** [https://web-track-naver-vietnam-ai-hackathon-chris-lee1901-h6ki6hwdw.vercel.app](https://web-track-naver-vietnam-ai-hackathon-chris-lee1901-h6ki6hwdw.vercel.app)
 
-*Deployed on Vercel with Netlify backup*
+*Deployed on Vercel with latest task detail panel features*
 
 ### 🎥 Demo Video
 **📹 Demo Video:** [https://youtu.be/your-demo-video-link](https://youtu.be/your-demo-video-link)
 
+<<<<<<< HEAD
+**Video shows (5 minutes):**
+- ✅ Feature walkthrough- **🔄 Full CRUD operations** - Create, read, update, delete with real-time IndexedDB persistence
+- **💾 Persistent storage** - IndexedDB with structured data storage and automatic recoverycross all 5 views
+- 🤖 AI Assistant demo with Vietnamese natural language input
+- ⏱️ Pomodoro Timer with automatic task time tracking
+- 📊 Real-time data sync between components
+- 🎯 Goal and habit tracking with automatic progress updates
+- 📈 Analytics dashboard with productivity insights
+
+### ⚡ Local Setup (< 2 minutes)
+=======
 ### ⚡ Local Setup
+>>>>>>> a88ec79bede165ebeb3e2c11ca52bb71a8660a07
 
 ```bash
 # Clone & Install
@@ -36,6 +49,10 @@ npm run build && npm run preview
 3. **Pomodoro:** Start a focus session - watch your task times update automatically
 4. **Goals:** Set "Học 2 giờ mỗi ngày" and see automatic progress from completed tasks
 5. **Analytics:** Complete some tasks to see your productivity visualization
+6. **🤖 Smart ChatBot:** Click the floating chat button for instant help and guidance
+   - Ask questions like "Cách tạo task mới?" or "Làm sao để dùng Pomodoro?"
+   - Get contextual tips based on your current page
+   - First-time user walkthrough with interactive guidance
 
 ---
 
@@ -68,15 +85,15 @@ An **AI-enhanced academic planning app** made specifically for Vietnamese studen
 
 | Requirement | Implementation | Files |
 |-------------|---------------|-------|
-| **✅ Full CRUD Operations** | Create, read, update, delete events with localStorage | `src/store/eventStore.ts`, `src/services/databaseService.ts` |
-| **✅ Persistent Storage** | localStorage with data recovery | `src/services/migrationService.ts` |
+| **✅ Full CRUD Operations** | Create, read, update, delete events with IndexedDB | `src/store/eventStore.ts`, `src/services/databaseService.ts` |
+| **✅ Persistent Storage** | IndexedDB with structured data storage and automatic recovery | `src/services/databaseService.ts` |
 | **✅ 3+ Different Views** | **5 Views:** Dashboard, Calendar, Analytics, Do-Now, AI Assistant | `src/pages/` directory |
 | **✅ Time/Date Handling** | Date parsing, Vietnamese time expressions | `src/utils/dateUtils.ts`, `src/services/aiService.ts` |
 <<<<<<< HEAD
 | **✅ 20+ Items Support** | Performance optimized rendering, supports many events | Performance optimizations throughout |
 =======
 | **✅ 20+ Items Support** | Tested with 20+ events, optimized rendering | Performance tested throughout |
-
+>>>>>>> 243d9f1b00923786da2782c32a158114c6ec234f
 
 ### 🔄 System Integration Pipeline
 
@@ -148,7 +165,7 @@ class IntegrationService {
 - **⚡ Quick Actions:** Add tasks fast, change priorities
 - **🚨 Smart Alerts:** Notifications based on urgency
 
-**Task Detail Panel**
+**🆕 NEW: Task Detail Panel**
 - **📝 Click to View Details:** Click any task in Kanban to see full information
 - **📄 Task-Specific Notes:** 3 types of notes for each task:
   - **📝 Note:** General observations and thoughts
@@ -162,22 +179,102 @@ class IntegrationService {
 
 **How it works:**
 ```typescript
-// Dashboard shows real-time statistics
-const stats = {
-  upcoming: events.filter(e => isUpcoming(e.startTime)),
-  overdue: events.filter(e => isPastDue(e.startTime) && e.status !== 'done'),
-  completed: events.filter(e => e.status === 'done')
+// Enhanced Dashboard with task detail management
+const Dashboard = () => {
+  const [selectedTask, setSelectedTask] = useState<AcademicEvent | null>(null);
+  const [isPanelVisible, setIsPanelVisible] = useState(true);
+  
+  // Click any task to view details
+  const handleTaskClick = (task: AcademicEvent) => {
+    setSelectedTask(task);
+    setIsPanelVisible(true);
+  };
+  
+  // Panel adapts layout automatically
+  return (
+    <Grid>
+      <Grid.Col span={{ base: 12, lg: isPanelVisible ? 8 : 12 }}>
+        <KanbanBoard onTaskClick={handleTaskClick} />
+      </Grid.Col>
+      {isPanelVisible && (
+        <Grid.Col span={{ base: 12, lg: 4 }}>
+          <TaskDetailPanel 
+            selectedTask={selectedTask}
+            onClose={() => setIsPanelVisible(false)}
+          />
+        </Grid.Col>
+      )}
+    </Grid>
+  );
 };
+
+// Task detail features
+interface TaskDetailFeatures {
+  taskNotes: {
+    types: ['note', 'report', 'reminder'];
+    autoSave: boolean;
+    lastUpdated: Date;
+  };
+  subTasks: {
+    create: boolean;
+    progressTracking: boolean;
+    completion: boolean;
+  };
+  dailyNotes: {
+    autoReset: 'daily';
+    stickyNote: boolean;
+    dateSpecific: boolean;
+  };
+  statusManagement: {
+    dropdown: boolean;
+    realTimeSync: boolean;
+  };
+}
 ```
 
-### 🤖 2. Gemini AI Study Assistant
-**What it does:** Talk to your app in Vietnamese to create tasks
+### 🤖 2. Gemini AI Study Assistant + Smart ChatBot
+**What it does:** Talk to your app in Vietnamese to create tasks + Get instant help and guidance
 
 **Vietnamese Language Support:**
 - **🗣️ Natural Input:** "học toán 3 giờ ngày mai lúc 2 giờ chiều"
 - **🧠 Understands Context:** Knows academic terms, Vietnamese time expressions
 - **⏰ Smart Time Parsing:** "3 ngày sau", "tuần tới", "thứ 2 tuần sau"
 - **🎯 Time Estimates:** Auto-suggests study time based on task type
+
+**🆕 NEW: Smart ChatBot Assistant**
+- **💬 Instant Help:** Floating chat button available on all pages
+- **🎯 Contextual Guidance:** Different help suggestions based on current page
+- **🚀 First-Time User Guide:** Interactive walkthrough for new users
+- **❓ FAQ System:** Answers common questions about app features
+- **🔍 Quick Actions:** Pre-built question buttons for common tasks
+- **📍 Page-Aware Help:** ChatBot knows which feature you're currently using
+
+**ChatBot Features:**
+```typescript
+// Smart contextual help system
+interface ChatBotFeatures {
+  contextualHelp: {
+    dashboard: "Task management and Kanban board guidance",
+    calendar: "Calendar navigation and event planning tips", 
+    analytics: "Understanding your productivity metrics",
+    goals: "Setting and tracking academic goals",
+    pomodoro: "Focus session tips and time management"
+  },
+  
+  quickActions: {
+    newUser: ["Cách tạo task đầu tiên?", "AI Assistant hoạt động như thế nào?"],
+    dashboard: ["Tạo task mới", "Quản lý panel chi tiết"],
+    calendar: ["Xem lịch tuần", "Thêm sự kiện"],
+    analytics: ["Hiểu chỉ số tập trung", "Xem báo cáo tiến độ"]
+  },
+  
+  responses: {
+    vietnamese: "Full Vietnamese language support",
+    adaptive: "Responses change based on user context",
+    helpful: "Step-by-step guidance with screenshots"
+  }
+}
+```
 
 **AI Implementation:**
 ```typescript
@@ -366,9 +463,9 @@ class AIService {
 }
 ```
 
-### 💾 Data Storage
+### 💾 Data Storage & Task Management
 ```typescript
-// My data structure
+// Enhanced data structure with task detail support
 interface AcademicEvent {
   id: string;
   title: string;
@@ -383,16 +480,7 @@ interface AcademicEvent {
   procrastinationCoefficient?: number; // Learning about my habits
 }
 
-// Storage strategy
-const storageSystem = {
-  primary: 'localStorage',
-  backup: 'sessionStorage',
-  migration: 'automatic version handling',
-  recovery: 'error handling'
-};
-```
-
-// Task detail data structures
+// NEW: Task detail data structures
 interface TaskNote {
   id: string;
   taskId: string;
@@ -414,6 +502,20 @@ interface DailyNote {
   content: string;
   lastUpdated: Date;
 }
+
+// Storage strategy with enhanced features
+const storageSystem = {
+  primary: 'IndexedDB',
+  backup: 'automatic IndexedDB recovery',
+  migration: 'structured database versioning',
+  recovery: 'comprehensive error handling',
+  taskDetails: {
+    notes: 'localStorage with taskId indexing',
+    subTasks: 'localStorage with progress tracking',
+    dailyNotes: 'localStorage with date-based keys'
+  }
+};
+```
 
 ### ⚡ Performance Optimizations
 ```typescript
@@ -564,8 +666,8 @@ class SmartSync {
 
 | Requirement | Status | Implementation Details | Files |
 |-------------|--------|----------------------|-------|
-| **✅ Full CRUD Operations** | ✅ Done | Create, Read, Update, Delete events with localStorage | `src/store/eventStore.ts` - CRUD with error handling |
-| **✅ Persistent Storage** | ✅ Done | localStorage with migration system and error recovery | `src/services/databaseService.ts` - Storage layer |
+| **✅ Full CRUD Operations** | ✅ Done | Create, Read, Update, Delete events with IndexedDB | `src/store/eventStore.ts` - CRUD with error handling |
+| **✅ Persistent Storage** | ✅ Done | IndexedDB with structured data storage and automatic recovery | `src/services/databaseService.ts` - Storage layer |
 | **✅ 3+ Different Views** | ✅ **5 Views** | Dashboard, Calendar (Day/Week/Month), Analytics, Do-Now, AI Assistant | `src/pages/` - Each view shows different data |
 | **✅ Time/Date Handling** | ✅ Done | Vietnamese time expressions, date formatting and parsing | `src/utils/dateUtils.ts` - Date processing |
 | **✅ 20+ Items Support** | ✅ Done | Performance optimized rendering, tested with many events | Performance optimizations throughout |
@@ -575,7 +677,8 @@ class SmartSync {
 | Feature | Status | What's Cool About It | Impact |
 |---------|--------|---------------------|---------|
 | **🤖 AI Integration** | ✅ Working | Google Gemini 2.0 Flash with Vietnamese language processing | Creates tasks from natural language |
-| **🔄 System Integration** | ✅ Done | Real-time sync between Pomodoro, goals, habits, tasks | Everything updates automatically |
+| **� Smart ChatBot** | ✅ New | Contextual help system with Vietnamese support and page-aware guidance | Reduces learning curve for new users |
+| **�🔄 System Integration** | ✅ Done | Real-time sync between Pomodoro, goals, habits, tasks | Everything updates automatically |
 | **📊 Analytics Engine** | ✅ Working | Procrastination tracking, productivity scoring, trend analysis | Helps understand study patterns |
 | **⏱️ Time Intelligence** | ✅ Smart | Automatic time tracking, realistic estimation, pattern learning | Solves time management issues |
 | **🎯 Goal Automation** | ✅ Smart | Smart auto-updating goals with manual override protection | Intelligent progress tracking with conflict resolution |
@@ -589,14 +692,18 @@ class SmartSync {
 
 ```bash
 # Project Numbers
-📁 Total Files: 64 (46 TypeScript files)
+📁 Total Files: 65+ (47+ TypeScript files)
 📝 TypeScript Usage: Modern TS/TSX throughout
 🧪 Error Handling: Comprehensive error handling
 ⚡ Performance: Optimized rendering for many items
-🎨 UI Components: 19 reusable components
-📝 Note System: 3 note types with localStorage persistence
-🔧 Services: 8 specialized service modules
+🎨 UI Components: 20+ reusable components (including TaskDetailPanel + ChatBot)
+🔧 Services: 9+ specialized service modules (including chatbotService)
 📊 Store Management: 3 Zustand stores
+🆕 New Features: Task detail panel + Smart ChatBot with 6+ major components
+📝 Note System: 3 note types with localStorage persistence
+✅ Sub-Task Engine: Complete sub-task management system
+📅 Daily Planning: Auto-resetting daily workspace
+💬 ChatBot System: Contextual help with Vietnamese language support
 ```
 
 ### 🎯 User Experience Testing
@@ -683,7 +790,11 @@ const aiServices = {
 ### 🎯 Technical Stuff
 - **🔥 Modern Stack:** React 19 + TypeScript 5.8 + Vite 7.1
 - **🤖 Working AI:** Google Gemini integration with error handling
+<<<<<<< HEAD
 - **⚡ Performance:** Optimized for 100+ items
+=======
+- **⚡ Performance:** Optimized for 20+ items
+>>>>>>> a88ec79bede165ebeb3e2c11ca52bb71a8660a07
 - **📱 Responsive:** Mobile-first design with accessibility
 - **🔄 Real-time Sync:** Event-driven updates across all views
 
@@ -698,6 +809,7 @@ const aiServices = {
 - **✅ Sub-Task Tracking:** Break down complex tasks with automatic progress calculation
 - **📅 Daily Sticky Notes:** Personal daily workspace that resets automatically
 - **🎨 Adaptive UI:** Panel collapses/expands to optimize screen space usage
+- **💬 Smart ChatBot Assistant:** Contextual help system with Vietnamese support and first-time user guidance
 
 ### 🎨 User Experience
 - **🎨 Modern UI:** Gradient-based design with smooth animations
