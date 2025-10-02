@@ -17,7 +17,7 @@ interface StudyContext {
 }
 
 export class GeminiService {
-  private readonly apiKey = 'AIzaSyBD9JIWh_SaMMrv_rJCoKJ3qJwJ1Yi6b8Q';
+  private readonly apiKey = 'Input your API KEY here';
   private readonly baseUrl = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent';
   private isAvailable = true;
 
