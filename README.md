@@ -7,12 +7,10 @@
 ## 🚀 Quick Start & Demo
 
 ### 🔗 Live Demo
-**🌐 Production URL:** [https://web-track-naver-vietnam-ai-hackathon-chris-lee1901-h6ki6hwdw.vercel.app](https://web-track-naver-vietnam-ai-hackathon-chris-lee1901-h6ki6hwdw.vercel.app)
+**🌐 Production URL:** [https://web-track-naver-vietnam-ai-hackatho-xi-sandy.vercel.app/](https://web-track-naver-vietnam-ai-hackatho-xi-sandy.vercel.app/)
 
 *Deployed on Vercel with latest task detail panel features*
 
-### 🎥 Demo Video
-**📹 Demo Video:** [https://youtu.be/your-demo-video-link](https://youtu.be/your-demo-video-link)
 
 <<<<<<< HEAD
 **Video shows (5 minutes):**
